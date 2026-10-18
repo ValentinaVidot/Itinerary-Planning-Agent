@@ -41,7 +41,7 @@ def load_config(root: Path) -> tuple[str, str]:
     key = os.environ.get("OPENROUTER_API_KEY", values.get("OPENROUTER_API_KEY", "")).strip()
     model = os.environ.get("OPENROUTER_MODEL", values.get("OPENROUTER_MODEL", MODEL)).strip()
     if not key or key.startswith("your-"):
-        raise RunError("Set OPENROUTER_API_KEY in lab/.env or the environment; see .env.example.")
+        raise RunError("Set OPENROUTER_API_KEY in src/.env or the environment; see .env.example.")
     if "\n" in key or "\r" in key:
         raise RunError("The API key contains invalid characters.")
     if model != MODEL:

@@ -1,7 +1,7 @@
 [project]
-name = "haid-product-analysis-lab"
+name = "itinerary-planning-agent"
 version = "0.3.0"
-description = "Part 1 teaching lab: simple agent configuration and a supplied support library"
+description = "Itinerary planning agent for booked multi-city trips"
 requires-python = ">=3.11"
 dependencies = ["openai-agents==0.22.2", "openai==3.14.1", "httpx2==2.13.0"]
 

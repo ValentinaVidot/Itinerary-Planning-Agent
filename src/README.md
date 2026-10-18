@@ -35,8 +35,8 @@ and the extension guide are included for reading and printing.
 
 ## Setup before class
 
-Use Python **3.11 or newer**. Open a terminal in this lab folder (the folder
-containing `agent.py` and `requirements.txt`). In VS Code, open the lab folder,
+Use Python **3.11 or newer**. Open a terminal in this `src` folder (the folder
+containing `agent.py` and `requirements.txt`). In VS Code, open the `src` folder,
 then choose **Terminal → New Terminal**. Enter commands one line at a time and
 press Enter after each line.
 
@@ -97,7 +97,7 @@ You only need to create `.venv`, install the packages, and configure `.env` once
 for this copy of the lab. When you return to the lab or open a new terminal:
 
 1. Open a terminal in the lab folder, as above. If your terminal is elsewhere,
-   run `cd "path/to/lab"`, replacing `path/to/lab` with the actual folder path.
+   run `cd "path/to/src"`, replacing `path/to/src` with the actual folder path.
    Keep the quotes if the path contains spaces.
 2. Activate the existing environment using the command for your system:
 
