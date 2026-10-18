@@ -1,0 +1,74 @@
+[
+  {
+    "id": "jb-cat-cafe",
+    "name": "Meow & Brew Cat Cafe",
+    "city": "Johor Bahru",
+    "area": "Taman Mount Austin",
+    "lat": 1.5509,
+    "lng": 103.7932,
+    "tags": ["animals", "food"],
+    "hours": {"mon": null, "tue": {"open": "11:00", "close": "20:00"}, "wed": {"open": "11:00", "close": "20:00"}, "thu": {"open": "11:00", "close": "20:00"}, "fri": {"open": "11:00", "close": "21:00"}, "sat": {"open": "10:00", "close": "21:00"}, "sun": {"open": "10:00", "close": "20:00"}},
+    "visit_minutes": 90,
+    "description": "A relaxed cat cafe with drinks and light snacks."
+  },
+  {
+    "id": "jb-heritage-walk",
+    "name": "Johor Bahru Heritage Walk",
+    "city": "Johor Bahru",
+    "area": "Old Town",
+    "lat": 1.4627,
+    "lng": 103.7646,
+    "tags": ["history", "culture"],
+    "hours": {"mon": {"open": "08:00", "close": "18:00"}, "tue": {"open": "08:00", "close": "18:00"}, "wed": {"open": "08:00", "close": "18:00"}, "thu": {"open": "08:00", "close": "18:00"}, "fri": {"open": "08:00", "close": "18:00"}, "sat": {"open": "08:00", "close": "18:00"}, "sun": {"open": "08:00", "close": "18:00"}},
+    "visit_minutes": 120,
+    "description": "A self-guided route through old town landmarks."
+  },
+  {
+    "id": "jb-food-street",
+    "name": "Jalan Dhoby Food Street",
+    "city": "Johor Bahru",
+    "area": "Jalan Dhoby",
+    "lat": 1.4602,
+    "lng": 103.7665,
+    "tags": ["food", "culture"],
+    "hours": {"mon": {"open": "10:00", "close": "22:00"}, "tue": {"open": "10:00", "close": "22:00"}, "wed": {"open": "10:00", "close": "22:00"}, "thu": {"open": "10:00", "close": "22:00"}, "fri": {"open": "10:00", "close": "23:00"}, "sat": {"open": "10:00", "close": "23:00"}, "sun": {"open": "10:00", "close": "22:00"}},
+    "visit_minutes": 90,
+    "description": "Local cafes and casual food stalls in the historic centre."
+  },
+  {
+    "id": "jb-museum",
+    "name": "Royal Abu Bakar Museum",
+    "city": "Johor Bahru",
+    "area": "Istana Besar",
+    "lat": 1.4557,
+    "lng": 103.7435,
+    "tags": ["history", "culture"],
+    "hours": {"mon": null, "tue": {"open": "09:00", "close": "17:00"}, "wed": {"open": "09:00", "close": "17:00"}, "thu": {"open": "09:00", "close": "17:00"}, "fri": {"open": "09:00", "close": "17:00"}, "sat": {"open": "09:00", "close": "17:00"}, "sun": {"open": "09:00", "close": "17:00"}},
+    "visit_minutes": 90,
+    "description": "A palace museum showcasing Johor royal history."
+  },
+  {
+    "id": "jb-danga-bay",
+    "name": "Danga Bay Waterfront",
+    "city": "Johor Bahru",
+    "area": "Danga Bay",
+    "lat": 1.4927,
+    "lng": 103.7068,
+    "tags": ["nature", "food"],
+    "hours": {"mon": {"open": "07:00", "close": "22:00"}, "tue": {"open": "07:00", "close": "22:00"}, "wed": {"open": "07:00", "close": "22:00"}, "thu": {"open": "07:00", "close": "22:00"}, "fri": {"open": "07:00", "close": "22:00"}, "sat": {"open": "07:00", "close": "22:00"}, "sun": {"open": "07:00", "close": "22:00"}},
+    "visit_minutes": 90,
+    "description": "A waterfront promenade for an easy evening walk."
+  },
+  {
+    "id": "jb-endau-rompin",
+    "name": "Endau-Rompin National Park",
+    "city": "Johor Bahru",
+    "area": "Mersing District",
+    "lat": 2.4300,
+    "lng": 103.4100,
+    "tags": ["nature", "animals"],
+    "hours": {"mon": {"open": "08:00", "close": "17:00"}, "tue": {"open": "08:00", "close": "17:00"}, "wed": {"open": "08:00", "close": "17:00"}, "thu": {"open": "08:00", "close": "17:00"}, "fri": {"open": "08:00", "close": "17:00"}, "sat": {"open": "08:00", "close": "17:00"}, "sun": {"open": "08:00", "close": "17:00"}},
+    "visit_minutes": 240,
+    "description": "A rainforest reserve for hiking and wildlife."
+  }
+]
