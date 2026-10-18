@@ -1,90 +1,108 @@
-"""Agent tools: ordinary Python functions exposed by the standard SDK decorator."""
+"""Tools exposed to the itinerary planning agent."""
+
+import uuid
 
 from agents import function_tool
-from file_access import files, text_arg
-from lab_support import web
-from plans import Plan, PlanStep, save_plan, display_plan
+from file_access import ToolError, text_arg
+from pydantic import ValidationError
+from itinerary import (
+    Itinerary,
+    Stop,
+    check_itinerary,
+    haversine_km,
+    load_itinerary,
+    load_memories,
+    load_places,
+    save_itinerary_data,
+    save_memories,
+)
+
+
+def _current_itinerary() -> Itinerary:
+    itinerary = load_itinerary()
+    if itinerary is None:
+        raise ToolError("Create a trip before planning stops.")
+    return itinerary
 
 
 @function_tool
-def list_files(path: str) -> dict:
-    """List accessible names in a folder. Use '.' to discover data/ and runtime/."""
-    return files.list_files(path)
+def find_places(city: str, tags: list[str], near_hotel: str) -> list[dict]:
+    """Find curated places matching interests, ordered by distance from a hotel."""
+    text_arg(city, "city", 40)
+    if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):
+        raise ToolError("tags must be a list of strings.")
+    text_arg(near_hotel, "near_hotel", 120)
+    itinerary = _current_itinerary()
+    hotel = next((hotel for hotel in itinerary.hotels
+                  if hotel.name.casefold() == near_hotel.casefold() and hotel.city == city), None)
+    if hotel is None:
+        raise ToolError(f"Hotel {near_hotel} in {city} is not in the current trip.")
+    wanted = {tag.casefold() for tag in tags}
+    results = []
+    for place in load_places().values():
+        if place.city != city or wanted.isdisjoint(tag.casefold() for tag in place.tags):
+            continue
+        distance = haversine_km(hotel.lat, hotel.lng, place.lat, place.lng)
+        results.append({
+            "id": place.id, "name": place.name, "area": place.area, "tags": place.tags,
+            "distance_km": round(distance, 1), "hours": {
+                day: hours.model_dump() if hours else None for day, hours in place.hours.items()
+            }, "visit_minutes": place.visit_minutes, "description": place.description,
+        })
+    return sorted(results, key=lambda item: item["distance_km"])[:10]
 
 
 @function_tool
-def read_file(path: str) -> str:
-    """Read a .md/.txt file in data/ or runtime/. Returns its text."""
-    return files.read_text(path)
+def check_day(stops: list[Stop]) -> list[dict]:
+    """Check proposed stops using the saved trip's hotels and pace."""
+    itinerary = _current_itinerary()
+    try:
+        proposed = itinerary.model_copy(update={"stops": stops})
+        checked = check_itinerary(proposed, load_places())
+    except (TypeError, ValueError):
+        raise ToolError("Each stop must include a valid place_id, date, start, and reason.") from None
+    return [stop.model_dump(mode="json") for stop in checked.stops]
 
 
 @function_tool
-def write_file(path: str, content: str) -> str:
-    """Save notes or reports under runtime/. Only update_plan can change the plan."""
-    files.write_text(path, content)
-    return "Saved " + path
+def save_itinerary(stops: list[Stop], revision_note: str) -> dict:
+    """Save a checked itinerary while preserving every locked stop."""
+    text_arg(revision_note, "revision_note", 600)
+    itinerary = _current_itinerary()
+    places = load_places()
+    try:
+        proposed = [stop if isinstance(stop, Stop) else Stop.model_validate(stop) for stop in stops]
+    except ValidationError:
+        raise ToolError("Every stop must have a valid date, start time, reason, and lock state.") from None
+    for stop in proposed:
+        if stop.place_id not in places:
+            raise ToolError(f"Place {stop.place_id} is not in the curated dataset.")
+        if not stop.reason.strip():
+            raise ToolError("Every stop needs a non-empty reason.")
+    for locked in (stop for stop in itinerary.stops if stop.locked):
+        matching = next((stop for stop in proposed
+                         if stop.place_id == locked.place_id and stop.date == locked.date
+                         and stop.start == locked.start), None)
+        if matching is None:
+            name = places.get(locked.place_id)
+            label = name.name if name else locked.place_id
+            raise ToolError(f"Locked stop {label} on {locked.date} was changed or removed. Keep locked stops exactly as they are.")
+        matching.locked = True
+    checked = check_itinerary(itinerary.model_copy(update={
+        "stops": proposed, "approved": False, "revision_note": revision_note,
+    }), places)
+    result = save_itinerary_data(checked)
+    return {**result, "stops": [stop.model_dump(mode="json") for stop in checked.stops],
+            "flagged_stops": sum(bool(stop.flags) for stop in checked.stops)}
 
 
 @function_tool
-def save_recommendation(recommendation: str) -> str:
-    """Save the recommendation after the user has agreed to it."""
-    files.write_text("runtime/recommendation.md", recommendation)
-    return "Recommendation saved to runtime/recommendation.md."
-
-
-@function_tool
-def search_local(query: str, path: str) -> list[str]:
-    """Search .md/.txt files recursively in a data/ or runtime/ folder.
-
-    Match the entire query as one substring, ignoring case. Spaces, line breaks,
-    and punctuation must match exactly; partial words can match. Empty or
-    whitespace-only queries return []. Return up to five filenames in
-    alphabetical order; use read_file to read a matching file.
-    """
-    text_arg(query, "query", 200, empty=True)
-    documents = files.read_texts(path)  # {"data/brief.md": "file contents", ...}
-    files.display("search_local", f"Search query: {query!r}")
-    files.display("search_local", f"Search path: {path} (including subfolders)")
-    # For students: lower() ignores case; in searches for the entire query.
-    # "import preview" must appear together, with that space between the words.
-    # "import" also matches "imported". strip() below only checks for a blank query.
-
-    # ADD YOUR CODE HERE: comment out the reference implementation below when running your own code
-    lowered_query = query.lower()              # step 1: one lowercase string
-    matches = []                               # start with no matches
-    if query.strip():                          # step 5: skip blank queries
-        for filename in sorted(documents):     # step 2: alphabetical filenames
-            text = documents[filename].lower() # that file's text, lowercased
-            if lowered_query in text:          # step 3: whole query appears?
-                matches.append(filename)       # keep the filename
-        matches = matches[:5]                  # step 4: at most five
-
-
-    # REFERENCE IMPLEMENTATION: comment it out when trying your own solution.
-    # query = query.lower()
-    # matches = []
-    # if query.strip():
-    #     for filename, content in sorted(documents.items()):
-    #         if query in content.lower():
-    #             matches.append(filename)
-    #         if len(matches) == 5:
-    #             break
-    # files.show_result("search_local", matches)
-    # return matches
-
-
-@function_tool
-def search_web(query: str) -> dict:
-    """Search public sources. Use public queries, never secrets or internal text."""
-    return web.search(query)
-
-
-# Follow save_plan into plans.py to inspect the shared validation and storage.
-# The agent and a future plan editor can call the same ordinary Python function.
-@function_tool
-def update_plan(goal: str, steps: list[PlanStep], revision_note: str) -> dict:
-    """Replace the plan with 1–8 steps. Mark done only after work succeeds."""
-    plan = Plan(goal=goal, steps=steps, revision_note=revision_note)
-    result = save_plan(plan)
-    display_plan(plan)
-    return result
+def propose_memory(preference: str, evidence: str) -> str:
+    """Propose a preference for user approval; this tool cannot approve it."""
+    text_arg(preference, "preference", 240)
+    text_arg(evidence, "evidence", 500)
+    memories = load_memories()
+    memories.append({"id": uuid.uuid4().hex, "preference": preference.strip(),
+                     "evidence": evidence.strip(), "status": "pending"})
+    save_memories(memories)
+    return "Proposed. The user will approve or reject it in the interface. Do not treat it as saved."

@@ -78,7 +78,7 @@ class Hotel(BaseModel):
 
 
 class Stop(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True)
+    model_config = ConfigDict(extra="forbid")
     place_id: str
     date: date
     start: str
