@@ -1,0 +1,168 @@
+OFFLINE SCRIPTED DEMO — no model calls, no live searches, no measured token costs.
+Uses the real tools in an isolated temporary workspace; your runtime/ is untouched.
+Remaining lab budget: $1.00 (offline demo; no spending)
+
+You> List the files in data/, then use data/task-brief.md as the assignment and prepare the requested product-analysis report. Create and update a visible plan as you work.
+Working…
+Files in data
++-------------------------------------------------------------------+--------------+
+| Path                                                              | Type         |
++-------------------------------------------------------------------+--------------+
+| data/customer-interviews.md                                       | file         |
++-------------------------------------------------------------------+--------------+
+| data/internal-constraints.md                                      | file         |
++-------------------------------------------------------------------+--------------+
+| data/product-features.md                                          | file         |
++-------------------------------------------------------------------+--------------+
+| data/task-brief.md                                                | file         |
++-------------------------------------------------------------------+--------------+
+Working…
+
+Updated plan — runtime/plan.md
+Goal: Assess SignalDesk's Singapore pilot readiness
+Update: Initial plan.
++--------------------------+--------------+------------------------------------------------------------+
+| ID                       | Status       | Step                                                       |
++--------------------------+--------------+------------------------------------------------------------+
+| s1                       | in_progress  | Read synthetic source files                                |
++--------------------------+--------------+------------------------------------------------------------+
+| s2                       | pending      | Compare two competitors and save notes                     |
++--------------------------+--------------+------------------------------------------------------------+
+| s3                       | pending      | Write runtime/summary.md and check source references       |
++--------------------------+--------------+------------------------------------------------------------+
+Working…
+Read: data/task-brief.md
+Read: data/product-features.md
+Read: data/customer-interviews.md
+Read: data/internal-constraints.md
+Working…
+Written: runtime/notes/internal.md (706 bytes)
+
+Updated plan — runtime/plan.md
+Goal: Assess SignalDesk's Singapore pilot readiness
+Update: Internal evidence read; compare competitors.
++--------------------------+--------------+------------------------------------------------------------+
+| ID                       | Status       | Step                                                       |
++--------------------------+--------------+------------------------------------------------------------+
+| s1                       | done         | Read synthetic source files                                |
++--------------------------+--------------+------------------------------------------------------------+
+| s2                       | in_progress  | Compare two competitors and save notes                     |
++--------------------------+--------------+------------------------------------------------------------+
+| s3                       | pending      | Write runtime/summary.md and check source references       |
++--------------------------+--------------+------------------------------------------------------------+
+Working…
+Web search: Dovetail Productboard official customer feedback features
++------------------------------------------+------------------------------------------------------------+
+| Source / URL                             | Information returned                                       |
++------------------------------------------+------------------------------------------------------------+
+| Dovetail — https://dovetail.com/         | Instructor paraphrase: Dovetail describes feedback         |
+|                                          | analysis linked to evidence.                               |
++------------------------------------------+------------------------------------------------------------+
+| Productboard —                           | Instructor paraphrase: Productboard describes centralizing |
+| https://www.productboard.com/use-        | feedback for prioritization.                               |
+| cases/customer-insights/                 |                                                            |
++------------------------------------------+------------------------------------------------------------+
+Working…
+Written: runtime/notes/competitors.md (633 bytes)
+Working…
+
+Updated plan — runtime/plan.md
+Goal: Assess SignalDesk's Singapore pilot readiness
+Update: Illustrative fallback evidence saved; draft report.
++--------------------------+--------------+------------------------------------------------------------+
+| ID                       | Status       | Step                                                       |
++--------------------------+--------------+------------------------------------------------------------+
+| s1                       | done         | Read synthetic source files                                |
++--------------------------+--------------+------------------------------------------------------------+
+| s2                       | done         | Compare two competitors and save notes                     |
++--------------------------+--------------+------------------------------------------------------------+
+| s3                       | in_progress  | Write runtime/summary.md and check source references       |
++--------------------------+--------------+------------------------------------------------------------+
+Written: runtime/summary.md (1520 bytes)
+Working…
+Read: runtime/summary.md
+
+Updated plan — runtime/plan.md
+Goal: Assess SignalDesk's Singapore pilot readiness
+Update: Offline example report saved; live evidence still needs validation.
++--------------------------+--------------+------------------------------------------------------------+
+| ID                       | Status       | Step                                                       |
++--------------------------+--------------+------------------------------------------------------------+
+| s1                       | done         | Read synthetic source files                                |
++--------------------------+--------------+------------------------------------------------------------+
+| s2                       | done         | Compare two competitors and save notes                     |
++--------------------------+--------------+------------------------------------------------------------+
+| s3                       | done         | Write runtime/summary.md and check source references       |
++--------------------------+--------------+------------------------------------------------------------+
+Working…
+
+Assistant:
+Created the plan, source notes, and product-analysis report. This scripted demo used illustrative fallback evidence; a live search still needs validation.
+Files changed this turn: runtime/notes/competitors.md, runtime/notes/internal.md, runtime/plan.md, runtime/summary.md
+
+You> Focus on small businesses with limited technical support. Revisit the gaps and recommend one improvement before a pilot.
+Working…
+Read: runtime/plan.md
+Read: runtime/summary.md
+Saved-note search
++--------------------------------------+------------------------------------------------------------+
+| File / line                          | Match                                                      |
++--------------------------------------+------------------------------------------------------------+
+| runtime/notes/internal.md:2          | - Source: data/customer-interviews.md, INT-SME-01. Guided  |
+|                                      | import is critical; the owner has no developer and wants   |
+|                                      | setup within thirty minutes.                               |
++--------------------------------------+------------------------------------------------------------+
+| runtime/notes/internal.md:3          | - Source: data/customer-interviews.md, INT-SME-02.         |
+|                                      | Automatic import is desirable, but manual CSV is           |
+|                                      | acceptable for a short pilot.                              |
++--------------------------------------+------------------------------------------------------------+
+| runtime/notes/internal.md:5          | - Source: data/product-features.md. SignalDesk supports    |
+|                                      | traceable themes and CSV import, but lacks an import       |
+|                                      | preview and CRM integration.                               |
++--------------------------------------+------------------------------------------------------------+
+Working…
+
+Updated plan — runtime/plan.md
+Goal: Prioritize one improvement for the small-business pilot
+Update: User narrowed the pilot to small businesses with limited support.
++--------------------------+--------------+------------------------------------------------------------+
+| ID                       | Status       | Step                                                       |
++--------------------------+--------------+------------------------------------------------------------+
+| s1                       | done         | Read synthetic source files                                |
++--------------------------+--------------+------------------------------------------------------------+
+| s2                       | done         | Compare two competitors and save notes                     |
++--------------------------+--------------+------------------------------------------------------------+
+| s3                       | in_progress  | Write runtime/summary.md and check source references       |
++--------------------------+--------------+------------------------------------------------------------+
+Working…
+Written: runtime/summary.md (1965 bytes)
+Working…
+
+Updated plan — runtime/plan.md
+Goal: Prioritize one improvement for the small-business pilot
+Update: Revised report prioritizes import support, with limitations retained.
++--------------------------+--------------+------------------------------------------------------------+
+| ID                       | Status       | Step                                                       |
++--------------------------+--------------+------------------------------------------------------------+
+| s1                       | done         | Read synthetic source files                                |
++--------------------------+--------------+------------------------------------------------------------+
+| s2                       | done         | Compare two competitors and save notes                     |
++--------------------------+--------------+------------------------------------------------------------+
+| s3                       | done         | Write runtime/summary.md and check source references       |
++--------------------------+--------------+------------------------------------------------------------+
+Working…
+
+Assistant:
+Revised the plan and report. Import guidance is the proposed priority; delivery effort and pilot outcomes remain unvalidated.
+Files changed this turn: runtime/plan.md, runtime/summary.md
+
+You> Why prioritize import improvements over a CRM integration?
+Working…
+
+Assistant:
+INT-SME-01 identifies setup as an immediate barrier, while INT-SME-02 accepts manual CSV during a pilot. With one improvement slot and limited support time, testing import guidance is the narrower first step. This is a hypothesis, not a measured result.
+Files changed this turn: none
+
+You> /exit
+Session ended. Saved files remain in runtime/.
+Demo finished. Temporary artifacts will now be removed.

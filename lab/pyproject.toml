@@ -1,0 +1,14 @@
+[project]
+name = "haid-product-analysis-lab"
+version = "0.3.0"
+description = "Part 1 teaching lab: simple agent configuration and a supplied support library"
+requires-python = ">=3.11"
+dependencies = ["openai-agents==0.22.2", "openai==3.14.1", "httpx2==2.13.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["agent", "tools", "plans"]
+packages = ["lab_support", "file_access"]

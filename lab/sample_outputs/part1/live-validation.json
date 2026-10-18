@@ -1,0 +1,16 @@
+{
+  "framework": "OpenAI Agents SDK",
+  "sdk_version": "0.22.2",
+  "checks": {
+    "all_local_tools": true,
+    "plan_revised": true,
+    "report_revised": true,
+    "live_search_evidence": true,
+    "within_target": true,
+    "known_cost": true
+  },
+  "cost_usd": 0.015008529999999999,
+  "confirmed_searches": 0,
+  "reserved_or_unknown_searches": 2,
+  "note": "Inspect report grounding and plan quality manually; these checks do not establish semantic correctness."
+}

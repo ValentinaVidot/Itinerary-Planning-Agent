@@ -1,0 +1,47 @@
+# Local credentials (keep the shared setup template)
+.env
+.env.*
+!.env.example
+
+# Virtual environments contain platform-specific executables and paths
+.venv/
+venv/
+env/
+ENV/
+
+# Python bytecode, build output, and installed package metadata
+__pycache__/
+*.py[cod]
+*$py.class
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Local test, type-checking, and lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.ipynb_checkpoints/
+
+# Generated agent output and per-machine session/accounting state
+runtime/
+.lab-state/
+
+# Local editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS and Windows metadata
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
