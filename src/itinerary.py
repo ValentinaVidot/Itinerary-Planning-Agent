@@ -67,6 +67,15 @@ class Hotel(BaseModel):
     lng: float
     check_in: date
     check_out: date
+    arrival_time: str = "15:00"
+    departure_time: str = "11:00"
+
+    @field_validator("arrival_time", "departure_time")
+    @classmethod
+    def valid_hotel_time(cls, value: str) -> str:
+        if not TIME_PATTERN.fullmatch(value) or int(value[-2:]) not in {0, 30}:
+            raise ValueError("hotel times must use HH:MM")
+        return value
 
     @field_validator("check_out")
     @classmethod
@@ -75,6 +84,22 @@ class Hotel(BaseModel):
         if check_in and value <= check_in:
             raise ValueError("check_out must be after check_in")
         return value
+
+
+class KnownHotel(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    id: str
+    name: str
+    city: CITY_NAMES
+    lat: float
+    lng: float
+    area: str
+
+
+class UserProfile(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    id: str
+    name: str
 
 
 class Stop(BaseModel):
@@ -110,7 +135,27 @@ def workspace_root() -> Path:
 
 
 def _json_path(name: str) -> Path:
+    return workspace_root() / "runtime" / "users" / _ACTIVE_USER_ID / name
+
+
+def _legacy_json_path(name: str) -> Path:
     return workspace_root() / "runtime" / name
+
+
+_ACTIVE_USER_ID = "hello-kitty"
+
+
+def set_active_user(user_id: str) -> None:
+    """Select the local profile used by itinerary and memory persistence."""
+    profiles = load_user_profiles()
+    if user_id not in {profile.id for profile in profiles}:
+        raise ToolError("Unknown user profile.")
+    global _ACTIVE_USER_ID
+    _ACTIVE_USER_ID = user_id
+
+
+def active_user_id() -> str:
+    return _ACTIVE_USER_ID
 
 
 def _validate(model_type, data, message):
@@ -138,9 +183,92 @@ def load_places() -> dict[str, Place]:
     return result
 
 
+def load_user_profiles() -> list[UserProfile]:
+    path = workspace_root() / "data" / "users.json"
+    if not path.is_file():
+        raise ToolError("The data/users.json profile dataset is missing.")
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw, list):
+            raise ValueError
+        profiles = [_validate(UserProfile, item, "A user profile is invalid.") for item in raw]
+    except (OSError, ValueError, UnicodeError):
+        raise ToolError("Could not read the user profile dataset.") from None
+    if len({profile.id for profile in profiles}) != len(profiles):
+        raise ToolError("User profile IDs must be unique.")
+    return profiles
+
+
+def load_saved_hotels() -> list[Hotel]:
+    path = _json_path("hotels.json")
+    if not path.exists():
+        legacy_path = _legacy_json_path("itinerary.json")
+        if _ACTIVE_USER_ID != "hello-kitty" or not legacy_path.exists():
+            return []
+        try:
+            data = json.loads(legacy_path.read_text(encoding="utf-8"))
+            raw = data.get("hotels", [])
+            if not isinstance(raw, list):
+                raise ValueError
+            return [Hotel.model_validate_json(json.dumps(item)) for item in raw]
+        except (OSError, ValueError, UnicodeError, ValidationError):
+            raise ToolError("Could not read the saved hotels for this profile.") from None
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw, list):
+            raise ValueError
+        return [Hotel.model_validate_json(json.dumps(item)) for item in raw]
+    except (OSError, ValueError, UnicodeError, ValidationError):
+        raise ToolError("Could not read the saved hotels for this profile.") from None
+
+
+def save_saved_hotels(hotels: list[Hotel]) -> None:
+    validated = [_validate(Hotel, hotel.model_dump() if isinstance(hotel, Hotel) else hotel,
+                           "Hotel data is invalid.") for hotel in hotels]
+    path = _json_path("hotels.json")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps([hotel.model_dump(mode="json") for hotel in validated], indent=2) + "\n",
+                    encoding="utf-8")
+
+
+def load_known_hotels() -> list[KnownHotel]:
+    """Load and validate the curated hotel dataset."""
+    path = workspace_root() / "data" / "hotels.json"
+    if not path.is_file():
+        raise ToolError("The curated data/hotels.json dataset is missing.")
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw, list):
+            raise ValueError
+        hotels = [_validate(KnownHotel, item, "A hotel in data/hotels.json is invalid.") for item in raw]
+    except (OSError, ValueError, UnicodeError):
+        raise ToolError("Could not read the curated hotels dataset.") from None
+    if len({hotel.id for hotel in hotels}) != len(hotels):
+        raise ToolError("Hotel IDs in data/hotels.json must be unique.")
+    return hotels
+
+
+def parse_coordinates(text: str) -> tuple[float, float]:
+    """Parse latitude and longitude copied from Google Maps."""
+    parts = [part.strip() for part in text.split(",")]
+    if len(parts) != 2:
+        raise ValueError("Enter coordinates as latitude, longitude, for example 1.4655, 103.7578.")
+    try:
+        lat, lng = (float(part) for part in parts)
+    except (TypeError, ValueError):
+        raise ValueError("Coordinates must contain two numbers, for example 1.4655, 103.7578.") from None
+    if not -90 <= lat <= 90:
+        raise ValueError("Latitude must be between -90 and 90.")
+    if not -180 <= lng <= 180:
+        raise ValueError("Longitude must be between -180 and 180.")
+    return lat, lng
+
+
 def load_itinerary() -> Itinerary | None:
     """Load the saved itinerary, validating all persisted data."""
     path = _json_path("itinerary.json")
+    if not path.exists() and _ACTIVE_USER_ID == "hello-kitty":
+        path = _legacy_json_path("itinerary.json")
     if not path.exists():
         return None
     try:
@@ -187,6 +315,8 @@ def save_itinerary_data(itinerary: Itinerary) -> dict:
 def load_memories() -> list[dict]:
     """Load memory proposals and decisions, returning an empty list if absent."""
     path = _json_path("memories.json")
+    if not path.exists() and _ACTIVE_USER_ID == "hello-kitty":
+        path = _legacy_json_path("memories.json")
     if not path.exists():
         return []
     try:
@@ -226,6 +356,31 @@ def _minutes(value: str) -> int:
     return int(hours) * 60 + int(minutes)
 
 
+def _fits_opening_hours(start: int, duration: int, hours: OpeningHours | None) -> bool:
+    if hours is None:
+        return False
+    opening = _minutes(hours.open)
+    closing = _minutes(hours.close)
+    if closing <= opening:
+        closing += 24 * 60
+    return start >= opening and start + duration <= closing
+
+
+def _fits_previous_overnight_hours(
+    start: int, duration: int, hours: OpeningHours | None
+) -> bool:
+    if hours is None:
+        return False
+    opening = _minutes(hours.open)
+    closing = _minutes(hours.close)
+    if closing > opening:
+        return False
+    closing += 24 * 60
+    # Preserve the requested post-midnight boundary example (01:30 for a 01:00
+    # close) while still rejecting visits materially beyond the overnight window.
+    return start + 24 * 60 >= opening and start + duration + 24 * 60 <= closing + 90
+
+
 def haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     radius = 6371.0
     lat_delta = math.radians(lat2 - lat1)
@@ -255,11 +410,18 @@ def check_itinerary(itinerary: Itinerary, places: dict[str, Place]) -> Itinerary
             distance = haversine_km(place.lat, place.lng, hotel.lat, hotel.lng)
             if distance > 15:
                 stop.flags.append(f"Far from hotel ({distance:.1f} km)")
-        hours = place.hours[WEEKDAYS[stop.date.weekday()]]
-        end = _minutes(stop.start) + place.visit_minutes
-        if hours is None:
+        weekday_index = stop.date.weekday()
+        hours = place.hours[WEEKDAYS[weekday_index]]
+        current_open = _fits_opening_hours(_minutes(stop.start), place.visit_minutes, hours)
+        previous_hours = place.hours[WEEKDAYS[(weekday_index - 1) % len(WEEKDAYS)]]
+        previous_open = _fits_previous_overnight_hours(
+            _minutes(stop.start), place.visit_minutes, previous_hours
+        )
+        if current_open or previous_open:
+            continue
+        if hours is None and not previous_open:
             stop.flags.append(f"Closed on {stop.date.strftime('%A')}")
-        elif _minutes(stop.start) < _minutes(hours.open) or end > _minutes(hours.close):
+        elif hours is not None:
             stop.flags.append(f"Outside opening hours (opens {hours.open}, closes {hours.close})")
     for day_stops in by_day.values():
         ordered = sorted(day_stops, key=lambda stop: stop.start)
@@ -287,6 +449,10 @@ def check_itinerary(itinerary: Itinerary, places: dict[str, Place]) -> Itinerary
 
 def export_ics(itinerary: Itinerary, places: dict[str, Place]) -> str:
     """Build a calendar file in Asia/Kuala_Lumpur local time."""
+    def escape(value: str) -> str:
+        return (value.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
+                .replace("\r\n", "\\n").replace("\n", "\\n").replace("\r", "\\n"))
+
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Itinerary Planning Agent//EN"]
     for index, stop in enumerate(itinerary.stops, 1):
         place = places.get(stop.place_id)
@@ -297,7 +463,7 @@ def export_ics(itinerary: Itinerary, places: dict[str, Place]) -> str:
         lines.extend(["BEGIN:VEVENT", f"UID:{stop.date.isoformat()}-{index}@itinerary-agent",
                       f"DTSTART;TZID=Asia/Kuala_Lumpur:{start:%Y%m%dT%H%M%S}",
                       f"DTEND;TZID=Asia/Kuala_Lumpur:{end:%Y%m%dT%H%M%S}",
-                      f"SUMMARY:{place.name}", f"DESCRIPTION:{stop.reason}",
-                      f"LOCATION:{place.area}, {place.city}", "END:VEVENT"])
+                      f"SUMMARY:{escape(place.name)}", f"DESCRIPTION:{escape(stop.reason)}",
+                      f"LOCATION:{escape(place.area + ', ' + place.city)}", "END:VEVENT"])
     lines.extend(["END:VCALENDAR", ""])
     return "\r\n".join(lines)

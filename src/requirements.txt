@@ -3,3 +3,4 @@ openai-agents==0.22.2
 openai==3.14.1
 httpx2==2.13.0
 pytest
+streamlit

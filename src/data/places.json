@@ -1,15 +1,45 @@
 [
   {
-    "id": "jb-cat-cafe",
-    "name": "Meow & Brew Cat Cafe",
+    "id": "jb-meow-me-cat-house",
+    "name": "Meow Me Cat House",
     "city": "Johor Bahru",
-    "area": "Taman Mount Austin",
-    "lat": 1.5509,
-    "lng": 103.7932,
-    "tags": ["animals", "food"],
-    "hours": {"mon": null, "tue": {"open": "11:00", "close": "20:00"}, "wed": {"open": "11:00", "close": "20:00"}, "thu": {"open": "11:00", "close": "20:00"}, "fri": {"open": "11:00", "close": "21:00"}, "sat": {"open": "10:00", "close": "21:00"}, "sun": {"open": "10:00", "close": "20:00"}},
+    "area": "Mount Austin",
+    "lat": 1.565285,
+    "lng": 103.774203,
+    "tags": [
+      "animals",
+      "cafe",
+      "food"
+    ],
+    "hours": {
+      "mon": {
+        "open": "12:00",
+        "close": "21:00"
+      },
+      "tue": {
+        "open": "12:00",
+        "close": "21:00"
+      },
+      "wed": null,
+      "thu": {
+        "open": "12:00",
+        "close": "21:00"
+      },
+      "fri": {
+        "open": "12:00",
+        "close": "21:00"
+      },
+      "sat": {
+        "open": "12:00",
+        "close": "21:00"
+      },
+      "sun": {
+        "open": "12:00",
+        "close": "21:00"
+      }
+    },
     "visit_minutes": 90,
-    "description": "A relaxed cat cafe with drinks and light snacks."
+    "description": "Cat cafe upstairs (2F) at 28-01 Jalan Austin Height 7/7 with resident cats, coffee, fruit tarts and cakes. Closed Wednesdays; no children under 6."
   },
   {
     "id": "jb-heritage-walk",
@@ -18,8 +48,40 @@
     "area": "Old Town",
     "lat": 1.4627,
     "lng": 103.7646,
-    "tags": ["history", "culture"],
-    "hours": {"mon": {"open": "08:00", "close": "18:00"}, "tue": {"open": "08:00", "close": "18:00"}, "wed": {"open": "08:00", "close": "18:00"}, "thu": {"open": "08:00", "close": "18:00"}, "fri": {"open": "08:00", "close": "18:00"}, "sat": {"open": "08:00", "close": "18:00"}, "sun": {"open": "08:00", "close": "18:00"}},
+    "tags": [
+      "history",
+      "culture"
+    ],
+    "hours": {
+      "mon": {
+        "open": "08:00",
+        "close": "18:00"
+      },
+      "tue": {
+        "open": "08:00",
+        "close": "18:00"
+      },
+      "wed": {
+        "open": "08:00",
+        "close": "18:00"
+      },
+      "thu": {
+        "open": "08:00",
+        "close": "18:00"
+      },
+      "fri": {
+        "open": "08:00",
+        "close": "18:00"
+      },
+      "sat": {
+        "open": "08:00",
+        "close": "18:00"
+      },
+      "sun": {
+        "open": "08:00",
+        "close": "18:00"
+      }
+    },
     "visit_minutes": 120,
     "description": "A self-guided route through old town landmarks."
   },
@@ -30,8 +92,40 @@
     "area": "Jalan Dhoby",
     "lat": 1.4602,
     "lng": 103.7665,
-    "tags": ["food", "culture"],
-    "hours": {"mon": {"open": "10:00", "close": "22:00"}, "tue": {"open": "10:00", "close": "22:00"}, "wed": {"open": "10:00", "close": "22:00"}, "thu": {"open": "10:00", "close": "22:00"}, "fri": {"open": "10:00", "close": "23:00"}, "sat": {"open": "10:00", "close": "23:00"}, "sun": {"open": "10:00", "close": "22:00"}},
+    "tags": [
+      "food",
+      "culture"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
     "visit_minutes": 90,
     "description": "Local cafes and casual food stalls in the historic centre."
   },
@@ -42,8 +136,37 @@
     "area": "Istana Besar",
     "lat": 1.4557,
     "lng": 103.7435,
-    "tags": ["history", "culture"],
-    "hours": {"mon": null, "tue": {"open": "09:00", "close": "17:00"}, "wed": {"open": "09:00", "close": "17:00"}, "thu": {"open": "09:00", "close": "17:00"}, "fri": {"open": "09:00", "close": "17:00"}, "sat": {"open": "09:00", "close": "17:00"}, "sun": {"open": "09:00", "close": "17:00"}},
+    "tags": [
+      "history",
+      "culture"
+    ],
+    "hours": {
+      "mon": null,
+      "tue": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "wed": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "thu": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "fri": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "sat": {
+        "open": "09:00",
+        "close": "17:00"
+      },
+      "sun": {
+        "open": "09:00",
+        "close": "17:00"
+      }
+    },
     "visit_minutes": 90,
     "description": "A palace museum showcasing Johor royal history."
   },
@@ -54,8 +177,40 @@
     "area": "Danga Bay",
     "lat": 1.4927,
     "lng": 103.7068,
-    "tags": ["nature", "food"],
-    "hours": {"mon": {"open": "07:00", "close": "22:00"}, "tue": {"open": "07:00", "close": "22:00"}, "wed": {"open": "07:00", "close": "22:00"}, "thu": {"open": "07:00", "close": "22:00"}, "fri": {"open": "07:00", "close": "22:00"}, "sat": {"open": "07:00", "close": "22:00"}, "sun": {"open": "07:00", "close": "22:00"}},
+    "tags": [
+      "nature",
+      "food"
+    ],
+    "hours": {
+      "mon": {
+        "open": "07:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "07:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "07:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "07:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "07:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "07:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "07:00",
+        "close": "22:00"
+      }
+    },
     "visit_minutes": 90,
     "description": "A waterfront promenade for an easy evening walk."
   },
@@ -64,11 +219,774 @@
     "name": "Endau-Rompin National Park",
     "city": "Johor Bahru",
     "area": "Mersing District",
-    "lat": 2.4300,
-    "lng": 103.4100,
-    "tags": ["nature", "animals"],
-    "hours": {"mon": {"open": "08:00", "close": "17:00"}, "tue": {"open": "08:00", "close": "17:00"}, "wed": {"open": "08:00", "close": "17:00"}, "thu": {"open": "08:00", "close": "17:00"}, "fri": {"open": "08:00", "close": "17:00"}, "sat": {"open": "08:00", "close": "17:00"}, "sun": {"open": "08:00", "close": "17:00"}},
+    "lat": 2.43,
+    "lng": 103.41,
+    "tags": [
+      "nature",
+      "animals"
+    ],
+    "hours": {
+      "mon": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "tue": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "wed": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "thu": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "fri": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "sat": {
+        "open": "08:00",
+        "close": "17:00"
+      },
+      "sun": {
+        "open": "08:00",
+        "close": "17:00"
+      }
+    },
     "visit_minutes": 240,
     "description": "A rainforest reserve for hiking and wildlife."
+  },
+  {
+    "id": "jb-eden-by-wizards",
+    "name": "Eden by Wizards",
+    "city": "Johor Bahru",
+    "area": "Tebrau",
+    "lat": 1.542185,
+    "lng": 103.774132,
+    "tags": [
+      "food",
+      "cafe"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 90,
+    "description": "Garden courtyard cafe that looks like a resort, known for its matcha drinks and plated brunch."
+  },
+  {
+    "id": "jb-mkb-southkey",
+    "name": "MKB Custom Keyboards (Mid Valley Southkey)",
+    "city": "Johor Bahru",
+    "area": "Kota Southkey",
+    "lat": 1.5004,
+    "lng": 103.7778,
+    "tags": [
+      "tech",
+      "shopping"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 45,
+    "description": "Custom mechanical keyboard store (lot S-039B) where you can try switches and keycaps."
+  },
+  {
+    "id": "jb-master-tam-southkey",
+    "name": "Master Tam Reflexology (Mid Valley Southkey)",
+    "city": "Johor Bahru",
+    "area": "Kota Southkey",
+    "lat": 1.5004,
+    "lng": 103.7778,
+    "tags": [
+      "wellness"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "01:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "01:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 90,
+    "description": "Foot reflexology and massage in The Mall, Mid Valley Southkey."
+  },
+  {
+    "id": "jb-ksl-night-market",
+    "name": "KSL Monday Night Market",
+    "city": "Johor Bahru",
+    "area": "Taman Century",
+    "lat": 1.4845,
+    "lng": 103.7623,
+    "tags": [
+      "food",
+      "shopping",
+      "culture"
+    ],
+    "hours": {
+      "mon": {
+        "open": "17:00",
+        "close": "23:00"
+      },
+      "tue": null,
+      "wed": null,
+      "thu": null,
+      "fri": null,
+      "sat": null,
+      "sun": null
+    },
+    "visit_minutes": 120,
+    "description": "Pasar malam on Jalan Seladang beside KSL City Mall, Monday nights only. Street food, snacks and cheap finds."
+  },
+  {
+    "id": "jb-ikea-tebrau",
+    "name": "IKEA Tebrau",
+    "city": "Johor Bahru",
+    "area": "Tebrau",
+    "lat": 1.551521,
+    "lng": 103.798858,
+    "tags": [
+      "home_decor",
+      "shopping",
+      "food"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 150,
+    "description": "Large IKEA store with home decor and furniture showrooms, plus the IKEA restaurant."
+  },
+  {
+    "id": "jb-midnight-wagyu",
+    "name": "Midnight Wagyu",
+    "city": "Johor Bahru",
+    "area": "Mount Austin",
+    "lat": 1.556,
+    "lng": 103.781,
+    "tags": [
+      "food",
+      "nightlife"
+    ],
+    "hours": {
+      "mon": {
+        "open": "17:00",
+        "close": "03:00"
+      },
+      "tue": {
+        "open": "17:00",
+        "close": "03:00"
+      },
+      "wed": {
+        "open": "17:00",
+        "close": "03:00"
+      },
+      "thu": {
+        "open": "17:00",
+        "close": "03:00"
+      },
+      "fri": {
+        "open": "17:00",
+        "close": "03:00"
+      },
+      "sat": {
+        "open": "17:00",
+        "close": "03:00"
+      },
+      "sun": {
+        "open": "17:00",
+        "close": "03:00"
+      }
+    },
+    "visit_minutes": 75,
+    "description": "Affordable wagyu supper spot in Mount Austin, open until 3am daily."
+  },
+  {
+    "id": "jb-warehouz-skudai",
+    "name": "Warehouz Skudai",
+    "city": "Johor Bahru",
+    "area": "Skudai",
+    "lat": 1.524,
+    "lng": 103.686,
+    "tags": [
+      "home_decor",
+      "shopping"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 90,
+    "description": "Big warehouse store for household items and home decor at No. 1, Jalan Roda Utama, off Jalan Skudai Batu 8."
+  },
+  {
+    "id": "jb-nana-collections",
+    "name": "Nana Collections",
+    "city": "Johor Bahru",
+    "area": "Bandar Johor Bahru",
+    "lat": 1.4615,
+    "lng": 103.762,
+    "tags": [
+      "shopping",
+      "home_decor"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 45,
+    "description": "Budget store on Jalan Wong Ah Fook with cute trinkets and small home items like cups and holders, plus accessories."
+  },
+  {
+    "id": "gh-chin-swee-temple",
+    "name": "Chin Swee Caves Temple",
+    "city": "Genting Highlands",
+    "area": "Genting Sempah",
+    "lat": 3.412588,
+    "lng": 101.788149,
+    "tags": [
+      "culture",
+      "history",
+      "nature"
+    ],
+    "hours": {
+      "mon": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "tue": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "wed": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "thu": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "fri": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "sat": {
+        "open": "07:00",
+        "close": "19:00"
+      },
+      "sun": {
+        "open": "07:00",
+        "close": "19:00"
+      }
+    },
+    "visit_minutes": 90,
+    "description": "Taoist temple built into the hillside with a nine-storey pagoda and views over the rainforest."
+  },
+  {
+    "id": "gh-skytropolis",
+    "name": "Skytropolis Indoor Theme Park",
+    "city": "Genting Highlands",
+    "area": "Resorts World Genting",
+    "lat": 3.424763,
+    "lng": 101.794864,
+    "tags": [
+      "theme_park",
+      "family"
+    ],
+    "hours": {
+      "mon": {
+        "open": "11:00",
+        "close": "21:00"
+      },
+      "tue": {
+        "open": "11:00",
+        "close": "21:00"
+      },
+      "wed": {
+        "open": "11:00",
+        "close": "21:00"
+      },
+      "thu": {
+        "open": "11:00",
+        "close": "21:00"
+      },
+      "fri": {
+        "open": "11:00",
+        "close": "21:00"
+      },
+      "sat": {
+        "open": "11:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "11:00",
+        "close": "21:00"
+      }
+    },
+    "visit_minutes": 180,
+    "description": "Indoor theme park at First World Plaza with rides for all ages, good on rainy or cold days."
+  },
+  {
+    "id": "kl-central-market",
+    "name": "Central Market (Pasar Seni)",
+    "city": "Kuala Lumpur",
+    "area": "Pasar Seni",
+    "lat": 3.145264,
+    "lng": 101.695416,
+    "tags": [
+      "culture",
+      "shopping",
+      "history"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 90,
+    "description": "Art deco market hall with Malaysian crafts, batik and souvenirs, next to Chinatown."
+  },
+  {
+    "id": "kl-maya-bangsar",
+    "name": "Maya @ Bangsar Banana Leaf",
+    "city": "Kuala Lumpur",
+    "area": "Bangsar",
+    "lat": 3.1325,
+    "lng": 101.6712,
+    "tags": [
+      "food"
+    ],
+    "hours": {
+      "mon": {
+        "open": "11:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "11:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "11:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "11:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "11:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "11:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "11:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 60,
+    "description": "Popular banana leaf rice restaurant at 9 Jalan Telawi 5, Bangsar."
+  },
+  {
+    "id": "kl-kannaas-bamboo-biryani",
+    "name": "Kannaas Bamboo Masalla Briyani (Puchong)",
+    "city": "Kuala Lumpur",
+    "area": "Puchong",
+    "lat": 3.06023,
+    "lng": 101.64204,
+    "tags": [
+      "food"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:30",
+        "close": "21:00"
+      },
+      "tue": {
+        "open": "10:30",
+        "close": "21:00"
+      },
+      "wed": {
+        "open": "10:30",
+        "close": "21:00"
+      },
+      "thu": {
+        "open": "10:30",
+        "close": "21:00"
+      },
+      "fri": {
+        "open": "10:30",
+        "close": "21:00"
+      },
+      "sat": {
+        "open": "10:30",
+        "close": "21:00"
+      },
+      "sun": {
+        "open": "10:30",
+        "close": "21:00"
+      }
+    },
+    "visit_minutes": 60,
+    "description": "Biryani cooked and served in bamboo, at 27G Jalan KS 3A, Taman Kinrara Seksyen 3, Puchong."
+  },
+  {
+    "id": "kl-jalan-alor",
+    "name": "Jalan Alor Food Street",
+    "city": "Kuala Lumpur",
+    "area": "Bukit Bintang",
+    "lat": 3.1457,
+    "lng": 101.7087,
+    "tags": [
+      "food",
+      "nightlife",
+      "culture"
+    ],
+    "hours": {
+      "mon": {
+        "open": "17:00",
+        "close": "02:00"
+      },
+      "tue": {
+        "open": "17:00",
+        "close": "02:00"
+      },
+      "wed": {
+        "open": "17:00",
+        "close": "02:00"
+      },
+      "thu": {
+        "open": "17:00",
+        "close": "02:00"
+      },
+      "fri": {
+        "open": "17:00",
+        "close": "02:00"
+      },
+      "sat": {
+        "open": "17:00",
+        "close": "02:00"
+      },
+      "sun": {
+        "open": "17:00",
+        "close": "02:00"
+      }
+    },
+    "visit_minutes": 120,
+    "description": "Famous night food street in Bukit Bintang. Stalls set up around sunset; many stay open until about 2am."
+  },
+  {
+    "id": "kl-spades-burger-ss15",
+    "name": "Spade's Burger SS15",
+    "city": "Kuala Lumpur",
+    "area": "SS15 Subang Jaya",
+    "lat": 3.0755,
+    "lng": 101.5888,
+    "tags": [
+      "food"
+    ],
+    "hours": {
+      "mon": {
+        "open": "11:30",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "11:30",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "11:30",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "11:30",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "11:30",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "11:30",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "11:30",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 60,
+    "description": "Penang's well-known burger joint at A-10, Jalan SS15/4D, Subang Jaya. Known for bacon burgers (not halal)."
+  },
+  {
+    "id": "kl-low-yat-plaza",
+    "name": "Plaza Low Yat",
+    "city": "Kuala Lumpur",
+    "area": "Bukit Bintang",
+    "lat": 3.144055,
+    "lng": 101.710455,
+    "tags": [
+      "tech",
+      "shopping"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 90,
+    "description": "Malaysia's best-known electronics mall, with floors of phones, laptops, gaming gear and accessories."
+  },
+  {
+    "id": "kl-durian-power",
+    "name": "Durian Power Food Stall (Backspace@Alor)",
+    "city": "Kuala Lumpur",
+    "area": "Bukit Bintang",
+    "lat": 3.145534,
+    "lng": 101.70771,
+    "tags": [
+      "food",
+      "fruits"
+    ],
+    "hours": {
+      "mon": {
+        "open": "13:00",
+        "close": "02:00"
+      },
+      "tue": {
+        "open": "13:00",
+        "close": "02:00"
+      },
+      "wed": {
+        "open": "13:00",
+        "close": "02:00"
+      },
+      "thu": {
+        "open": "13:00",
+        "close": "02:00"
+      },
+      "fri": {
+        "open": "13:00",
+        "close": "02:00"
+      },
+      "sat": {
+        "open": "13:00",
+        "close": "02:00"
+      },
+      "sun": {
+        "open": "13:00",
+        "close": "02:00"
+      }
+    },
+    "visit_minutes": 45,
+    "description": "Durian stall near Jalan Alor. Supply depends on the season, so check what's available on the day."
   }
 ]
