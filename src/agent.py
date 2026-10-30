@@ -10,6 +10,8 @@ USE_MEMORY = True
 
 INSTRUCTIONS = """You are an itinerary planning assistant.
 Plan day-by-day itineraries around the traveler's booked hotels, interests, and pace.
+Interest tags may include history, nature, food, shopping, animals, culture,
+nightlife, tech, home_decor, wellness, fruits, theme_park, family, and cafe.
 Only suggest places returned by find_places. Never invent places, opening hours, or
 distances. Give every stop a short reason that names the matching interest, distance
 from that night's hotel, and opening time, such as "Cat cafe: you chose animals,
@@ -17,6 +19,8 @@ from that night's hotel, and opening time, such as "Cat cafe: you chose animals,
 Use check_day before save_itinerary. Fix flagged stops when a better option exists;
 if a flag cannot be fixed, keep it and explain why. Never change, move, or remove
 locked stops. When re-planning, change only unlocked stops.
+Treat hotel arrival and departure times as hard boundaries: do not schedule
+activities before arrival on check-in day or after departure on check-out day.
 When the user's edits or answers reveal a lasting preference, call propose_memory and
 tell the user to approve or reject it. Never claim a memory is saved before approval.
 Use approved preferences when relevant and mention them in reasons, for example
@@ -49,6 +53,16 @@ def _context_text():
     else:
         lines.extend([
             f"Pace: {itinerary.pace}; interests: {', '.join(itinerary.interests) or 'none'}",
+            "Booked hotels:",
+        ])
+        for hotel in itinerary.hotels:
+            lines.append(
+                f"- {hotel.name} in {hotel.city}: "
+                f"check-in {hotel.check_in.isoformat()}, "
+                f"{hotel.arrival_time}; check-out {hotel.check_out.isoformat()}, "
+                f"{hotel.departure_time}"
+            )
+        lines.extend([
             "Itinerary:",
         ])
         for day in sorted({stop.date for stop in itinerary.stops}):

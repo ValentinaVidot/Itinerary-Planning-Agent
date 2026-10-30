@@ -1,0 +1,178 @@
+[
+  {
+    "id": "jb-amari",
+    "name": "Amari Johor Bahru",
+    "city": "Johor Bahru",
+    "lat": 1.4622,
+    "lng": 103.7633,
+    "area": "Bandar Johor Bahru"
+  },
+  {
+    "id": "jb-ksl",
+    "name": "KSL Hotel & Resort",
+    "city": "Johor Bahru",
+    "lat": 1.4847,
+    "lng": 103.761,
+    "area": "Taman Century"
+  },
+  {
+    "id": "jb-st-giles-southkey",
+    "name": "St Giles Southkey",
+    "city": "Johor Bahru",
+    "lat": 1.502527,
+    "lng": 103.776447,
+    "area": "Kota Southkey"
+  },
+  {
+    "id": "jb-opero-southkey",
+    "name": "Opero Hotel Southkey Johor Bahru",
+    "city": "Johor Bahru",
+    "lat": 1.49749,
+    "lng": 103.779374,
+    "area": "Kota Southkey"
+  },
+  {
+    "id": "jb-capri-by-fraser",
+    "name": "Capri by Fraser Johor Bahru",
+    "city": "Johor Bahru",
+    "lat": 1.466634,
+    "lng": 103.765091,
+    "area": "Kim Teng Park"
+  },
+  {
+    "id": "jb-shama-suasana",
+    "name": "Shama Suasana Johor Bahru",
+    "city": "Johor Bahru",
+    "lat": 1.463333,
+    "lng": 103.761667,
+    "area": "Bandar Johor Bahru"
+  },
+  {
+    "id": "jb-doubletree",
+    "name": "DoubleTree by Hilton Johor Bahru",
+    "city": "Johor Bahru",
+    "lat": 1.465321,
+    "lng": 103.760049,
+    "area": "Bandar Johor Bahru"
+  },
+  {
+    "id": "genting-resorts-world",
+    "name": "Resorts World Genting",
+    "city": "Genting Highlands",
+    "lat": 3.4244,
+    "lng": 101.7932,
+    "area": "Resorts World Genting"
+  },
+  {
+    "id": "genting-crockfords",
+    "name": "Crockfords Genting",
+    "city": "Genting Highlands",
+    "lat": 3.4249,
+    "lng": 101.7937,
+    "area": "Resorts World Genting"
+  },
+  {
+    "id": "genting-le-vert",
+    "name": "Le Vert Boutique Hotel",
+    "city": "Genting Highlands",
+    "lat": 3.387452,
+    "lng": 101.772573,
+    "area": "Genting Permai"
+  },
+  {
+    "id": "genting-antara",
+    "name": "Antara Residences Genting Highlands",
+    "city": "Genting Highlands",
+    "lat": 3.418607,
+    "lng": 101.788895,
+    "area": "Genting Highlands"
+  },
+  {
+    "id": "genting-scapes",
+    "name": "SCAPES Hotel",
+    "city": "Genting Highlands",
+    "lat": 3.387485,
+    "lng": 101.784271,
+    "area": "Midhills"
+  },
+  {
+    "id": "genting-horizon-homes",
+    "name": "Horizon Homes at Genting Highlands",
+    "city": "Genting Highlands",
+    "lat": 3.434082,
+    "lng": 101.786844,
+    "area": "Grand Ion Delemen"
+  },
+  {
+    "id": "kl-traders",
+    "name": "Traders Hotel Kuala Lumpur",
+    "city": "Kuala Lumpur",
+    "lat": 3.1538,
+    "lng": 101.7123,
+    "area": "KLCC"
+  },
+  {
+    "id": "kl-mandarin-oriental",
+    "name": "Mandarin Oriental Kuala Lumpur",
+    "city": "Kuala Lumpur",
+    "lat": 3.1579,
+    "lng": 101.7116,
+    "area": "KLCC"
+  },
+  {
+    "id": "kl-axon-bukit-bintang",
+    "name": "Luxury Hotel At BUKIT BINTANG AXON",
+    "city": "Kuala Lumpur",
+    "lat": 3.145032,
+    "lng": 101.713058,
+    "area": "Bukit Bintang"
+  },
+  {
+    "id": "kl-jw-marriott",
+    "name": "JW Marriott Kuala Lumpur",
+    "city": "Kuala Lumpur",
+    "lat": 3.147785,
+    "lng": 101.713885,
+    "area": "Bukit Bintang"
+  },
+  {
+    "id": "kl-grand-millennium",
+    "name": "Grand Millennium Kuala Lumpur",
+    "city": "Kuala Lumpur",
+    "lat": 3.148017,
+    "lng": 101.712131,
+    "area": "Bukit Bintang"
+  },
+  {
+    "id": "kl-viia-residences",
+    "name": "ViiA Residences KL Eco City",
+    "city": "Kuala Lumpur",
+    "lat": 3.117628,
+    "lng": 101.67324,
+    "area": "KL Eco City"
+  },
+  {
+    "id": "kl-188-suites-klcc",
+    "name": "188 Suites KLCC by Holma",
+    "city": "Kuala Lumpur",
+    "lat": 3.1553,
+    "lng": 101.706,
+    "area": "KLCC"
+  },
+  {
+    "id": "kl-platinum-suites",
+    "name": "Platinum Suites KLCC & Bukit Bintang",
+    "city": "Kuala Lumpur",
+    "lat": 3.158414,
+    "lng": 101.704653,
+    "area": "Jalan Sultan Ismail"
+  },
+  {
+    "id": "kl-millerz-square",
+    "name": "Millerz Square by Fullerz",
+    "city": "Kuala Lumpur",
+    "lat": 3.0903,
+    "lng": 101.674,
+    "area": "Old Klang Road"
+  }
+]

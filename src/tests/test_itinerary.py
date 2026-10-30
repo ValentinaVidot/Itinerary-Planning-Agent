@@ -1,6 +1,6 @@
 from datetime import date
 
-from itinerary import Hotel, Itinerary, OpeningHours, Place, Stop, check_itinerary
+from itinerary import Hotel, Itinerary, OpeningHours, Place, Stop, check_itinerary, parse_coordinates
 
 
 MONDAY = date(2026, 10, 19)
@@ -122,3 +122,94 @@ def test_check_returns_copy_and_clears_stale_flags():
     assert checked is not itinerary
     assert itinerary.stops[0].flags == ["old flag"]
     assert checked.stops[0].flags == []
+
+
+def test_parse_coordinates_accepts_google_maps_format():
+    assert parse_coordinates(" 1.4655,   103.7578 ") == (1.4655, 103.7578)
+    assert parse_coordinates("1.4655,103.7578") == (1.4655, 103.7578)
+
+
+def test_parse_coordinates_rejects_invalid_values():
+    for text in ("1.4655", "north, 103.7578", "91, 103.7578", "1.4655, 181"):
+        try:
+            parse_coordinates(text)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"Expected invalid coordinates: {text}")
+
+
+def test_hotel_times_default_to_standard_check_in_and_check_out():
+    hotel = Hotel(
+        name="Test hotel",
+        city="Johor Bahru",
+        lat=1.0,
+        lng=103.0,
+        check_in=date(2026, 10, 18),
+        check_out=date(2026, 10, 19),
+    )
+
+    assert hotel.arrival_time == "15:00"
+    assert hotel.departure_time == "11:00"
+
+
+def test_hotel_times_use_half_hour_increments():
+    try:
+        Hotel(
+            name="Test hotel",
+            city="Johor Bahru",
+            lat=1.0,
+            lng=103.0,
+            check_in=date(2026, 10, 18),
+            check_out=date(2026, 10, 19),
+            arrival_time="15:15",
+        )
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected hotel arrival time to use a 30-minute increment")
+
+
+def test_overnight_hours_allow_late_evening_visit():
+    hours = opening_hours()
+    hours["fri"] = OpeningHours(open="17:00", close="03:00")
+    place = make_place("night-market", hours=hours)
+    itinerary = make_itinerary([
+        Stop(place_id="night-market", date=date(2026, 10, 23), start="23:00", reason="Night visit"),
+    ])
+
+    assert flags_for(check_itinerary(itinerary, {"night-market": place}), "night-market") == []
+
+
+def test_overnight_hours_allow_previous_day_after_midnight_visit():
+    hours = opening_hours()
+    hours["fri"] = OpeningHours(open="10:00", close="01:00")
+    hours["sat"] = None
+    place = make_place("late-place", hours=hours)
+    itinerary = make_itinerary([
+        Stop(place_id="late-place", date=date(2026, 10, 24), start="01:30", reason="Late visit"),
+    ])
+
+    assert flags_for(check_itinerary(itinerary, {"late-place": place}), "late-place") == []
+
+
+def test_overnight_hours_flag_visit_after_close():
+    hours = opening_hours()
+    hours["fri"] = OpeningHours(open="17:00", close="03:00")
+    place = make_place("night-market", hours=hours)
+    itinerary = make_itinerary([
+        Stop(place_id="night-market", date=date(2026, 10, 23), start="04:00", reason="Too late"),
+    ])
+
+    assert flags_for(check_itinerary(itinerary, {"night-market": place}), "night-market") == [
+        "Outside opening hours (opens 17:00, closes 03:00)",
+    ]
+
+
+def test_normal_daytime_hours_still_work():
+    place = make_place("day-place")
+    itinerary = make_itinerary([
+        Stop(place_id="day-place", date=MONDAY, start="10:00", reason="Day visit"),
+    ])
+
+    assert flags_for(check_itinerary(itinerary, {"day-place": place}), "day-place") == []
