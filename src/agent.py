@@ -2,7 +2,7 @@
 
 from agents import Agent, Runner
 
-from itinerary import load_itinerary, load_memories, load_places
+from itinerary import day_plan, load_itinerary, load_memories, load_places
 from tools import check_day, find_places, propose_memory, save_itinerary
 
 
@@ -16,13 +16,21 @@ Only suggest places returned by find_places. Never invent places, opening hours,
 distances. Give every stop a short reason that names the matching interest, distance
 from that night's hotel, and opening time, such as "Cat cafe: you chose animals,
 10 minutes from your Johor Bahru hotel, open until 8pm".
-Use check_day before save_itinerary. Fix flagged stops when a better option exists;
+For a full day, target 3-4 stops at relaxed pace or 5-6 stops at packed pace. On a
+check-in or check-out day, target 1-2 stops around arrival or departure. Include a
+mix across the day (morning, lunch, afternoon, and dinner/evening) and use the
+traveler's interests. Never repeat the same place on two days.
+Plan only the date the user asks about; do not change other dates. Call check_day
+before save_itinerary, then save the requested date with its date parameter.
+Fix flagged stops when a better option exists;
 if a flag cannot be fixed, keep it and explain why. Never change, move, or remove
 locked stops. When re-planning, change only unlocked stops.
 Treat hotel arrival and departure times as hard boundaries: do not schedule
 activities before arrival on check-in day or after departure on check-out day.
-When the user's edits or answers reveal a lasting preference, call propose_memory and
-tell the user to approve or reject it. Never claim a memory is saved before approval.
+When the user's edits, itinerary-change requests, or answers reveal a lasting preference,
+call propose_memory and ask the user whether they want to save it to memory. This
+includes preferences expressed while requesting a one-off itinerary change, such as
+avoiding theme parks. Never claim a memory is saved before approval.
 Use approved preferences when relevant and mention them in reasons, for example
 "(you prefer outdoor activities)".
 End each turn with a short summary of what changed and any flagged stops.
@@ -59,12 +67,17 @@ def _context_text():
             lines.append(
                 f"- {hotel.name} in {hotel.city}: "
                 f"check-in {hotel.check_in.isoformat()}, "
-                f"{hotel.arrival_time}; check-out {hotel.check_out.isoformat()}, "
-                f"{hotel.departure_time}"
+                f"{hotel.check_in_time}; check-out {hotel.check_out.isoformat()}, "
+                f"{hotel.check_out_time}"
             )
         lines.extend([
             "Itinerary:",
         ])
+        for plan in day_plan(itinerary):
+            lines.append(
+                f"Day plan {plan['date'].isoformat()} ({plan['day_type']}): "
+                f"{', '.join(window['start'] + '-' + window['end'] for window in plan['windows'])}"
+            )
         for day in sorted({stop.date for stop in itinerary.stops}):
             lines.append(f"{day.isoformat()}:")
             day_stops = sorted(
@@ -102,7 +115,7 @@ def prepare_input(history, user_input, _files):
 
 def run_agent(agent, messages, run_config=None):
     """Run the model/tool loop once for the user's message and earlier history."""
-    return Runner.run_sync(agent, messages, max_turns=12, run_config=run_config)
+    return Runner.run_sync(agent, messages, max_turns=25, run_config=run_config)
 
 
 if __name__ == "__main__":

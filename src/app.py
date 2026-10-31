@@ -3,6 +3,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta
 import json
+import re
 from queue import Empty, Queue
 import time
 
@@ -21,6 +22,7 @@ from itinerary import (
     load_saved_hotels,
     load_user_profiles,
     parse_coordinates,
+    day_plan,
     save_saved_hotels,
     save_itinerary_data,
     save_memories,
@@ -171,6 +173,14 @@ def _apply_theme():
             border-color: #12552e;
             box-shadow: 0 6px 16px rgba(23, 107, 58, 0.45);
         }
+        [class*="st-key-chat_send"] button {
+            border-color: #051650;
+            background: #051650;
+        }
+        [class*="st-key-chat_send"] button:hover {
+            background: #0a266d;
+            border-color: #051650;
+        }
         [class*="st-key-add_hotel"] button:hover,
         [class*="st-key-create_trip"] button:hover,
         [class*="st-key-next_review"] button:hover,
@@ -274,7 +284,7 @@ def _log_turn(result, before, after, ui_edits):
     }, indent=2) + "\n", encoding="utf-8")
 
 
-def _run_turn(prompt, ui_edits=None):
+def _run_turn(prompt, ui_edits=None, show_answer=True):
     session = _session()
     before = load_itinerary()
     events = Queue()
@@ -310,8 +320,153 @@ def _run_turn(prompt, ui_edits=None):
     if result.status == "failed":
         st.error(result.error or "The agent turn failed.")
     else:
-        _show_agent_answer(result.answer)
+        message = {
+            "prompt": prompt,
+            "answer": result.answer,
+        }
+        st.session_state.setdefault("chat_messages", []).append(message)
+        st.session_state["chat_history"] = st.session_state["chat_messages"]
+        if show_answer:
+            _show_agent_answer(result.answer)
     return result
+
+
+def _plan_window_text(plan):
+    windows = plan["windows"]
+    if plan["day_type"] in {"transfer", "check-in-and-out"}:
+        return (
+            f"Transfer day: before {windows[0]['end']} near {windows[0]['hotel'].name}, "
+            f"after {windows[1]['start']} near {windows[1]['hotel'].name}."
+        )
+    window = windows[0]
+    if plan["day_type"] == "check-in":
+        return f"Check-in day: plan from {window['start']} near {window['hotel'].name}."
+    if plan["day_type"] == "check-out":
+        return f"Check-out day: plan before {window['end']} near {window['hotel'].name}."
+    return f"Full day near {window['hotel'].name}."
+
+
+def _chat_target_date(prompt: str, itinerary):
+    plans = day_plan(itinerary)
+    if not plans:
+        return None
+    lowered = prompt.lower()
+    iso_match = re.search(r"\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b", lowered)
+    if iso_match:
+        try:
+            target = datetime.strptime(iso_match.group(0).replace("/", "-"), "%Y-%m-%d").date()
+        except ValueError:
+            target = None
+        if target is not None:
+            return next((plan for plan in plans if plan["date"] == target), None)
+
+    month_names = (
+        "january|february|march|april|may|june|july|august|"
+        "september|october|november|december"
+    )
+    named_date = re.search(
+        rf"\b(\d{{1,2}})(?:st|nd|rd|th)?\s+({month_names})"
+        rf"(?:\s+(\d{{4}}))?\b|"
+        rf"\b({month_names})\s+(\d{{1,2}})(?:st|nd|rd|th)?"
+        rf"(?:\s+(\d{{4}}))?\b",
+        lowered,
+    )
+    if named_date:
+        groups = named_date.groups()
+        if groups[0]:
+            day_number, month_name, year = int(groups[0]), groups[1], groups[2]
+        else:
+            month_name, day_number, year = groups[3], int(groups[4]), groups[5]
+        month_number = datetime.strptime(month_name, "%B").month
+        matching = [
+            plan for plan in plans
+            if plan["date"].month == month_number and plan["date"].day == day_number
+            and (year is None or plan["date"].year == int(year))
+        ]
+        if matching:
+            return matching[0]
+
+    for plan in plans:
+        if plan["weekday"].lower() in lowered:
+            return plan
+    day_match = re.search(r"\bday\s+(\d+)\b", lowered)
+    if day_match:
+        index = int(day_match.group(1)) - 1
+        if 0 <= index < len(plans):
+            return plans[index]
+    for day_type, labels in {
+        "check-in": ("check-in day", "check in day", "arrival day"),
+        "transfer": ("transfer day", "travel day"),
+        "check-out": ("check-out day", "check out day", "departure day"),
+    }.items():
+        if any(label in lowered for label in labels):
+            return next((plan for plan in plans if plan["day_type"] == day_type), None)
+    return None
+
+
+def _plan_day(plan):
+    itinerary = load_itinerary()
+    if itinerary is None:
+        return None
+    minimum, maximum = ((1, 2) if plan["day_type"] != "full" else
+                        (3, 4) if itinerary.pace == "relaxed" else (5, 6))
+    window_prompt = _plan_window_text(plan)
+    prompt = (
+        f"Plan {plan['date'].isoformat()} ({plan['weekday']}); "
+        f"Keep locked stops. Target {minimum}-{maximum} stops. "
+        f"{window_prompt} "
+        "Plan only this date, use the date parameter when saving, and call check_day before saving."
+    )
+    result = _run_turn(prompt, {
+        "action": "plan_day", "date": plan["date"].isoformat(),
+        "target": f"{minimum}-{maximum}", "day_type": plan["day_type"],
+    }, show_answer=False)
+    return result
+
+
+@st.dialog("Planning your trip")
+def _plan_trip_days():
+    itinerary = load_itinerary()
+    if itinerary is None:
+        st.error("Create a trip before planning.")
+        return
+    plans = day_plan(itinerary)
+    progress = st.progress(0)
+    failures = []
+    notes = []
+    status = st.empty()
+    for index, plan in enumerate(plans, 1):
+        status.write(
+            f"Planning day {index} of {len(plans)}: "
+            f"{plan['date'].strftime('%d %b')} ({plan['day_type']})"
+        )
+        result = _plan_day(plan)
+        progress.progress(index / len(plans))
+        if result is None or result.status == "failed":
+            failures.append(plan["date"].isoformat())
+            st.warning(f"⚠️ {plan['date'].strftime('%d %b')}: failed")
+            if st.button("Retry this day", key=f"dialog_retry_{plan['date']}"):
+                retry = _plan_day(plan)
+                if retry is not None and retry.status != "failed":
+                    failures.remove(plan["date"].isoformat())
+                    st.rerun()
+        else:
+            saved = load_itinerary()
+            day_stops = [stop for stop in saved.stops if stop.date == plan["date"]]
+            flagged = sum(bool(stop.flags) for stop in day_stops)
+            st.write(
+                f"✅ {plan['date'].strftime('%d %b')}: "
+                f"{len(day_stops)} stops, {flagged} flagged"
+            )
+            notes.append(f"### {plan['date'].strftime('%d %b')}\n\n{result.answer}")
+    st.session_state.planning_failures = failures
+    if notes:
+        with st.expander("Agent notes"):
+            for note in notes:
+                st.markdown(note)
+    st.success(f"Done: {len(plans)} days planned")
+    if st.button("View itinerary", type="primary"):
+        st.rerun()
 
 
 def _trip_setup():
@@ -332,8 +487,8 @@ def _trip_setup():
             "hotel_form_coordinates",
             "hotel_form_check_in",
             "hotel_form_check_out",
-            "hotel_form_arrival_time",
-            "hotel_form_departure_time",
+            "hotel_form_check_in_time",
+            "hotel_form_check_out_time",
         ):
             st.session_state.pop(key, None)
     known_hotels = load_known_hotels()
@@ -382,17 +537,17 @@ def _trip_setup():
                         or st.session_state.hotel_form_check_out <= check_in):
                     st.session_state.hotel_form_check_out = default_check_out
             with arrival_column:
-                arrival_time = st.selectbox(
-                    "Arrival time", HOTEL_TIMES, index=HOTEL_TIMES.index("15:00"),
-                    key="hotel_form_arrival_time",
+                check_in_time = st.selectbox(
+                    "Check-in time", HOTEL_TIMES, index=HOTEL_TIMES.index("15:00"),
+                    key="hotel_form_check_in_time",
                 )
             check_out_column, departure_column = st.columns(2)
             with check_out_column:
                 check_out = st.date_input("Check-out", key="hotel_form_check_out")
             with departure_column:
-                departure_time = st.selectbox(
-                    "Departure time", HOTEL_TIMES, index=HOTEL_TIMES.index("11:00"),
-                    key="hotel_form_departure_time",
+                check_out_time = st.selectbox(
+                    "Check-out time", HOTEL_TIMES, index=HOTEL_TIMES.index("11:00"),
+                    key="hotel_form_check_out_time",
                 )
 
             if st.button("Add hotel", key="add_hotel"):
@@ -408,8 +563,7 @@ def _trip_setup():
                     new_hotel = {
                         "name": hotel_name.strip(), "city": form_city, "lat": lat, "lng": lng,
                         "check_in": check_in, "check_out": check_out,
-                        "arrival_time": arrival_time, "departure_time": departure_time,
-                        "hotel_id": selected_hotel,
+                        "check_in_time": check_in_time, "check_out_time": check_out_time,
                     }
                     for existing in hotels:
                         if check_in < existing["check_out"] and existing["check_in"] < check_out:
@@ -418,7 +572,7 @@ def _trip_setup():
                                 f"({existing['check_in']} to {existing['check_out']})."
                             )
                     hotels.append(new_hotel)
-                    save_saved_hotels([Hotel(**hotel) for hotel in hotels])
+                    save_saved_hotels(hotels)
                     st.session_state.reset_hotel_form = True
                     st.rerun()
                 except (ValueError, TypeError) as exc:
@@ -432,12 +586,12 @@ def _trip_setup():
                     left, right = st.columns([5, 1])
                     left.write(
                         f"**{hotel['name']}** ({hotel['city']}) — "
-                        f"{hotel['check_in']} {hotel.get('arrival_time', '15:00')} to "
-                        f"{hotel['check_out']} {hotel.get('departure_time', '11:00')}"
+                        f"{hotel['check_in']} {hotel.get('check_in_time', hotel.get('arrival_time', '15:00'))} to "
+                        f"{hotel['check_out']} {hotel.get('check_out_time', hotel.get('departure_time', '11:00'))}"
                     )
                     if right.button("Remove", key=f"remove_hotel_{index}"):
                         hotels.pop(index)
-                        save_saved_hotels([Hotel(**hotel) for hotel in hotels])
+                        save_saved_hotels(hotels)
                         st.rerun()
             else:
                 st.info("Add at least one hotel before creating the trip.")
@@ -469,6 +623,13 @@ def _trip_setup():
                             f"{current['check_in']}."
                         )
                         return
+                    if current["check_in"] > previous["check_out"]:
+                        st.error(
+                            f"Hotel stays have a gap: {previous['name']} ends on "
+                            f"{previous['check_out']} but {current['name']} starts on "
+                            f"{current['check_in']}."
+                        )
+                        return
                 parsed = [Hotel(
                     name=draft["name"],
                     city=draft["city"],
@@ -476,21 +637,16 @@ def _trip_setup():
                     lng=draft["lng"],
                     check_in=draft["check_in"],
                     check_out=draft["check_out"],
-                    arrival_time=draft.get("arrival_time", "15:00"),
-                    departure_time=draft.get("departure_time", "11:00"),
+                    check_in_time=draft.get("check_in_time", draft.get("arrival_time", "15:00")),
+                    check_out_time=draft.get("check_out_time", draft.get("departure_time", "11:00")),
                 ) for draft in hotels]
                 itinerary = create_trip(parsed, list(interests), pace)
                 save_saved_hotels(parsed)
                 st.session_state.interests = list(interests)
                 st.session_state.pace = pace
-                st.success(f"Created a {len(itinerary.hotels)}-hotel trip. Planning it now...")
-                result = _run_turn(
-                    "Plan my whole trip now. Use find_places for each hotel and date range, "
-                    "check the proposed days, and save the planned stops with save_itinerary. "
-                    "Do not ask me to repeat the hotel or trip details; they are already in the context.",
-                    {"action": "create_trip", "interests": list(interests), "pace": pace},
-                )
-                st.session_state.trip_ready_for_next = result.status != "failed"
+                st.success(f"Created a {len(itinerary.hotels)}-hotel trip.")
+                _plan_trip_days()
+                st.session_state.trip_ready_for_next = load_itinerary() is not None
             except (ValueError, TypeError) as exc:
                 st.error(f"Trip details are invalid: {exc}")
     has_saved_trip = load_itinerary() is not None
@@ -509,100 +665,146 @@ def _editor():
         return
     st.header("Step 2 → Itinerary editor")
     if itinerary.approved:
-        st.success("Approved itinerary — all stops are locked. Select “Unlock itinerary” below if you need to make changes.")
+        st.success("✅ Approved. Export your calendar below.")
     places = load_places()
     names = {place.name: place_id for place_id, place in places.items()}
-    days = sorted({stop.date for stop in itinerary.stops})
-    if not days:
-        st.info("The trip has been created, but no activities have been saved yet.")
-        if st.button("Plan itinerary now", type="primary"):
-            _run_turn(
-                "Plan my whole trip now. Use find_places for each hotel and date range, "
-                "check the proposed days, and save the planned stops with save_itinerary. "
-                "Do not ask me to repeat the hotel or trip details; they are already in the context.",
-                {"action": "plan_itinerary"},
-            )
-            st.rerun()
-        return
-    editor_column, replan_column = st.columns([1.5, 1], gap="medium")
+    plans = day_plan(itinerary)
+    days = [plan["date"] for plan in plans]
+    overview_column, editor_column = st.columns([1, 2], gap="medium")
+    with overview_column:
+        with st.container(border=True):
+            overview_rows = []
+            icons = {
+                "check-in": "🛬",
+                "full": "🗓️",
+                "transfer": "🧳",
+                "check-out": "🛫",
+                "check-in-and-out": "🧳",
+            }
+            for plan in plans:
+                hotel = plan["hotel"]
+                overview_rows.append({
+                    "Date": plan["date"].isoformat(),
+                    "Day": plan["weekday"],
+                    "Type": f"{icons[plan['day_type']]} {plan['day_type']}",
+                    "Hotel": hotel.name if hotel else "—",
+                    "Plan window": _plan_window_text(plan),
+                })
+            st.caption("Trip overview")
+            st.table(overview_rows)
+            with st.container(border=True):
+                _approve_export()
     with editor_column:
         with st.container(border=True):
-            day_tabs = st.tabs([day.isoformat() for day in days])
-            for day, day_tab in zip(days, day_tabs):
+            total_flags = sum(bool(stop.flags) for stop in itinerary.stops)
+            st.caption(f"{total_flags} flagged stop(s)")
+            flagged_only = st.checkbox("Show only flagged stops", key="show_flagged_stops")
+            day_tabs = st.tabs([
+                f"{icons[plan['day_type']]} {plan['date'].isoformat()} "
+                f"({plan['day_type']})"
+                for plan in plans
+            ])
+            for plan, day_tab in zip(plans, day_tabs):
+                day = plan["date"]
                 day_stops = sorted((stop for stop in itinerary.stops if stop.date == day), key=lambda stop: stop.start)
                 with day_tab:
-                    rows = [{
-                        "Time": stop.start,
-                        "Place": places[stop.place_id].name if stop.place_id in places else stop.place_id,
-                        "Reason": stop.reason,
-                        "Flags": "WARNING: " + "; ".join(stop.flags) if stop.flags else "",
-                        "Locked": itinerary.approved or stop.locked,
-                        "Remove": False,
-                    } for stop in day_stops]
-                    edited = st.data_editor(
-                        rows, key=f"day_editor_{day.isoformat()}", hide_index=True, num_rows="fixed",
-                        column_config={
-                            "Time": st.column_config.TextColumn("Time (HH:MM)"),
-                            "Place": st.column_config.SelectboxColumn("Place", options=sorted(names), required=True),
-                            "Flags": st.column_config.TextColumn("Flags (warning)", disabled=True),
-                            "Locked": st.column_config.CheckboxColumn("Locked", disabled=True),
-                            "Remove": st.column_config.CheckboxColumn("Remove", disabled=itinerary.approved),
-                        },
-                        disabled=itinerary.approved,
+                    st.caption(
+                        f"{plan['day_type'].replace('-', ' ').title()} day · "
+                        f"{_plan_window_text(plan)}"
                     )
-                    if any(row["Flags"] for row in rows):
-                        st.warning("This day has flagged stops. Review the warning text before saving.")
-                    st.session_state[f"edited_{day.isoformat()}"] = (
-                        edited if isinstance(edited, list) else edited.to_dict("records")
-                    )
+                    for flag in itinerary.day_flags.get(day.isoformat(), []):
+                        st.warning(flag)
+                    visible_stops = [stop for stop in day_stops if not flagged_only or stop.flags]
+                    for stop in visible_stops:
+                        with st.container(border=True):
+                            left, right = st.columns([1, 3])
+                            left.markdown(f"### {stop.start}")
+                            if stop.locked:
+                                left.caption("🔒 Locked")
+                            if not itinerary.approved and left.button(
+                                "Unlock" if stop.locked else "Lock",
+                                key=f"toggle_lock_{day}_{stop.start}_{stop.place_id}",
+                            ):
+                                updated = [
+                                    item.model_copy(update={"locked": not item.locked})
+                                    if item is stop else item
+                                    for item in itinerary.stops
+                                ]
+                                save_itinerary_data(check_itinerary(
+                                    itinerary.model_copy(update={"stops": updated}), places
+                                ))
+                                st.toast("Saved: stop lock updated")
+                                st.rerun()
+                            if left.button(
+                                "Remove", key=f"card_remove_{day}_{stop.start}_{stop.place_id}",
+                                disabled=itinerary.approved or stop.locked,
+                            ):
+                                updated = [item for item in itinerary.stops if item is not stop]
+                                save_itinerary_data(check_itinerary(
+                                    itinerary.model_copy(update={"stops": updated}), places
+                                ))
+                                st.toast("Saved: stop removed")
+                                st.rerun()
+                            place = places.get(stop.place_id)
+                            with right:
+                                st.markdown(f"**{place.name if place else stop.place_id}**")
+                                st.markdown(stop.reason)
+                                badges = [
+                                    f"⚠️ {flag}" for flag in stop.flags
+                                ] or ["✅ Open at this time"]
+                                st.caption(" · ".join(badges))
+                    with st.expander("Edit times and places as a table"):
+                        table = st.data_editor(
+                            [{
+                                "Time": stop.start,
+                                "Place": places[stop.place_id].name if stop.place_id in places else stop.place_id,
+                                "Reason": stop.reason,
+                            } for stop in day_stops],
+                            key=f"editor_{day}",
+                            disabled=itinerary.approved,
+                            hide_index=True,
+                        )
+                        if st.button("Save table edits", key=f"save_table_{day}", disabled=itinerary.approved):
+                            try:
+                                changed = []
+                                for old, row in zip(day_stops, table.to_dict("records") if hasattr(table, "to_dict") else table):
+                                    if old.locked and (
+                                        str(row["Time"]) != old.start
+                                        or names.get(str(row["Place"]), str(row["Place"])) != old.place_id
+                                    ):
+                                        raise ValueError(f"Locked stop at {old.start} cannot be moved.")
+                                    changed.append(old.model_copy(update={
+                                        "start": str(row["Time"]),
+                                        "place_id": names.get(str(row["Place"]), str(row["Place"])),
+                                    }))
+                                replacement = [
+                                    stop for stop in itinerary.stops if stop.date != day
+                                ] + changed
+                                save_itinerary_data(check_itinerary(
+                                    itinerary.model_copy(update={
+                                        "stops": replacement,
+                                        "approved": False,
+                                        "revision_note": "Saved table edits.",
+                                    }), places
+                                ))
+                                st.toast("Saved: table edits checked")
+                                st.rerun()
+                            except (KeyError, TypeError, ValueError) as exc:
+                                st.error(f"Could not save table edits: {exc}")
+                    if plan["day_type"] == "full" and itinerary.day_flags.get(day.isoformat()):
+                        if st.button("Fill this day", key=f"fill_day_{day}"):
+                            _run_turn(
+                                f"Add stops to {day.isoformat()} to reach the pace target. Keep existing stops.",
+                                {"action": "fill_day", "date": day.isoformat()},
+                            )
+                            st.rerun()
+                    if st.button("Re-plan this day", key=f"replan_day_{day}", disabled=itinerary.approved):
+                        _run_turn(
+                            f"Re-plan only {day.isoformat()}. Keep locked stops and use save_itinerary with date={day.isoformat()}.",
+                            {"action": "replan_day", "date": day.isoformat()},
+                        )
+                        st.rerun()
 
-            save_column, unlock_column = st.columns(2)
-            if save_column.button("Save my edits", key="save_my_edits", disabled=itinerary.approved):
-                try:
-                    updated = []
-                    ui_edits = {}
-                    for day in sorted({stop.date for stop in itinerary.stops}):
-                        original = [stop for stop in itinerary.stops if stop.date == day]
-                        records = st.session_state.get(f"edited_{day.isoformat()}", [])
-                        ui_edits[day.isoformat()] = records
-                        for old, row in zip(original, records):
-                            if row.get("Remove"):
-                                if old.locked:
-                                    raise ValueError(f"Locked stop at {old.start} cannot be removed.")
-                                continue
-                            if old.locked and (row["Place"] != places[old.place_id].name or row["Time"] != old.start):
-                                raise ValueError(f"Locked stop at {old.start} cannot be moved.")
-                            updated.append(Stop(
-                                place_id=names.get(row["Place"], row["Place"]), date=day,
-                                start=str(row["Time"]), reason=str(row["Reason"]),
-                                locked=old.locked,
-                            ))
-                    checked = check_itinerary(itinerary.model_copy(update={
-                        "stops": updated, "approved": False, "revision_note": "Saved UI edits.",
-                    }), places)
-                    save_itinerary_data(checked)
-                    st.success("Edits saved and checked without a model call.")
-                    st.rerun()
-                except (ValueError, TypeError, KeyError) as exc:
-                    st.error(f"Could not save edits: {exc}")
-            if unlock_column.button("Unlock itinerary", disabled=not itinerary.approved):
-                unlocked_stops = [stop.model_copy(update={"locked": False}) for stop in itinerary.stops]
-                save_itinerary_data(itinerary.model_copy(update={"approved": False, "stops": unlocked_stops}))
-                st.success("Itinerary unlocked. You can now edit or remove stops.")
-                st.rerun()
-
-    with replan_column:
-        with st.container(border=True):
-            st.subheader("Optional re-planning request")
-            st.caption("Use this to change unlocked activities, for example: “add more cafés” or “make the evenings quieter.”")
-            extra = st.text_input("What would you like to change?", key="replan_wishes",
-                                  disabled=itinerary.approved)
-            if st.button("Re-plan unlocked stops", disabled=itinerary.approved):
-                prompt = "I edited the itinerary. Re-plan only the unlocked stops."
-                if extra.strip():
-                    prompt += f" Extra wishes: {extra.strip()}"
-                _run_turn(prompt, {"action": "replan_unlocked", "extra_wishes": extra})
-                st.rerun()
 def _chat():
     with st.popover("💬 Chat with your itinerary agent"):
         st.caption("Ask questions, request itinerary changes, or add a lasting preference.")
@@ -616,19 +818,38 @@ def _chat():
             "Request itinerary changes": "Describe the itinerary changes you want",
             "Add a preference": "Tell the agent a preference to remember",
         }
-        prompt = st.text_input(
-            "Message",
-            placeholder=prompts.get(chat_mode, "Choose an option above to start chatting"),
+        for message in st.session_state.get("chat_messages", st.session_state.get("chat_history", []))[-5:]:
+            with st.chat_message("user"):
+                st.write(message["prompt"])
+            with st.chat_message("assistant"):
+                _show_agent_answer(message["answer"])
+        prompt = st.chat_input(
+            prompts.get(chat_mode, "Choose an option above to start chatting"),
             key="chat_prompt",
         )
-        if st.button("Send", type="primary", disabled=not chat_mode or not prompt.strip()):
+        if prompt:
             if chat_mode == "Request itinerary changes":
-                prompt = f"Please update my itinerary as follows: {prompt}"
+                prompt = (
+                    "Please update my itinerary as follows. After completing the change, "
+                    "if the request expresses a lasting preference, call propose_memory and "
+                    "ask whether I want to save that preference to memory; do not save it "
+                    "without my approval. "
+                    f"Request: {prompt}"
+                )
             elif chat_mode == "Add a preference":
                 prompt = f"Please consider this lasting preference and propose it for memory approval: {prompt}"
-            with st.chat_message("user"):
-                st.write(prompt)
-            with st.chat_message("assistant"):
+            itinerary = load_itinerary()
+            if itinerary is not None and chat_mode == "Request itinerary changes":
+                target = _chat_target_date(prompt, itinerary)
+                if target is not None:
+                    prompt = (
+                        f"Target exactly {target['date'].isoformat()} ({target['day_type']} day). "
+                        f"{prompt} Keep all other dates unchanged."
+                    )
+                elif not any(token in prompt.lower() for token in ("trip", "all days", "whole")):
+                    st.warning("Please specify a date, weekday, or day number for this change.")
+                    return
+            with st.spinner("The agent is thinking..."):
                 _run_turn(prompt, {"action": "chat", "prompt": prompt})
             st.rerun()
 
@@ -673,8 +894,7 @@ def _approve_export():
         st.info("Create a trip first.")
         return
     if st.button("Approve itinerary", disabled=itinerary.approved):
-        locked_stops = [stop.model_copy(update={"locked": True}) for stop in itinerary.stops]
-        save_itinerary_data(itinerary.model_copy(update={"approved": True, "stops": locked_stops}))
+        save_itinerary_data(itinerary.model_copy(update={"approved": True}))
         st.success("Itinerary approved.")
         st.rerun()
     if itinerary.approved:
@@ -703,15 +923,10 @@ def main():
     else:
         _editor()
         _chat()
-        memory_column, export_column = st.columns([1.5, 1], gap="medium")
-        with memory_column:
-            with st.container(border=True):
-                _memories()
-        with export_column:
-            with st.container(border=True):
-                _approve_export()
-            if st.button("← Previous", key="previous_step_1"):
-                _go_to_step(1)
+        with st.sidebar:
+            _memories()
+        if st.button("← Previous", key="previous_step_1"):
+            _go_to_step(1)
 
 
 if __name__ == "__main__":

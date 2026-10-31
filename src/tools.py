@@ -1,6 +1,7 @@
 """Tools exposed to the itinerary planning agent."""
 
 import uuid
+from datetime import date as date_type
 
 from agents import function_tool
 from file_access import ToolError, text_arg
@@ -65,11 +66,18 @@ def check_day(stops: list[Stop]) -> list[dict]:
 
 
 @function_tool
-def save_itinerary(stops: list[Stop], revision_note: str) -> dict:
+def save_itinerary(stops: list[Stop], revision_note: str, date: str | None = None) -> dict:
     """Save a checked itinerary while preserving every locked stop."""
     text_arg(revision_note, "revision_note", 600)
     itinerary = _current_itinerary()
     places = load_places()
+    target_date = None
+    if date is not None:
+        text_arg(date, "date", 10)
+        try:
+            target_date = date_type.fromisoformat(date)
+        except ValueError:
+            raise ToolError("date must be an ISO date in YYYY-MM-DD format.") from None
     try:
         proposed = [stop if isinstance(stop, Stop) else Stop.model_validate(stop) for stop in stops]
     except ValidationError:
@@ -79,6 +87,33 @@ def save_itinerary(stops: list[Stop], revision_note: str) -> dict:
             raise ToolError(f"Place {stop.place_id} is not in the curated dataset.")
         if not stop.reason.strip():
             raise ToolError("Every stop needs a non-empty reason.")
+    if target_date is not None:
+        target_stops = [stop for stop in proposed if stop.date == target_date]
+        current_locked = [stop for stop in itinerary.stops if stop.date == target_date and stop.locked]
+        for locked in current_locked:
+            changed = next((
+                stop for stop in target_stops
+                if stop.place_id == locked.place_id and stop.date == locked.date
+                and stop.start != locked.start
+            ), None)
+            if changed is not None:
+                name = places.get(locked.place_id)
+                label = name.name if name else locked.place_id
+                raise ToolError(f"Locked stop {label} on {locked.date} was changed or removed. Keep locked stops exactly as they are.")
+        proposed = [
+            stop for stop in itinerary.stops
+            if stop.date != target_date and stop not in target_stops
+        ] + [
+            stop for stop in current_locked
+        ] + [
+            stop for stop in target_stops
+            if not any(
+                stop.place_id == locked.place_id
+                and stop.date == locked.date
+                and stop.start == locked.start
+                for locked in current_locked
+            )
+        ]
     for locked in (stop for stop in itinerary.stops if stop.locked):
         matching = next((stop for stop in proposed
                          if stop.place_id == locked.place_id and stop.date == locked.date
@@ -92,8 +127,25 @@ def save_itinerary(stops: list[Stop], revision_note: str) -> dict:
         "stops": proposed, "approved": False, "revision_note": revision_note,
     }), places)
     result = save_itinerary_data(checked)
-    return {**result, "stops": [stop.model_dump(mode="json") for stop in checked.stops],
-            "flagged_stops": sum(bool(stop.flags) for stop in checked.stops)}
+    minimum = 3 if itinerary.pace == "relaxed" else 5
+    maximum = 4 if itinerary.pace == "relaxed" else 6
+    warnings = []
+    for day, flags in checked.day_flags.items():
+        if target_date is not None and day != target_date.isoformat():
+            continue
+        if flags and flags[0].startswith("Light day"):
+            count = sum(stop.date.isoformat() == day for stop in checked.stops)
+            warnings.append(
+                f"{day} has {count} stop{'s' if count != 1 else ''}; "
+                f"{itinerary.pace} pace expects {minimum}-{maximum}"
+            )
+    return {
+        **result,
+        "stops": [stop.model_dump(mode="json") for stop in checked.stops],
+        "flagged_stops": sum(bool(stop.flags) for stop in checked.stops),
+        "warning": warnings[0] if warnings else None,
+        "warnings": warnings,
+    }
 
 
 @function_tool
