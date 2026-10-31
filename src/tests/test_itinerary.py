@@ -1,6 +1,9 @@
 from datetime import date
 
-from itinerary import Hotel, Itinerary, OpeningHours, Place, Stop, check_itinerary, parse_coordinates
+from itinerary import (
+    Hotel, Itinerary, OpeningHours, Place, Stop, check_itinerary, day_plan,
+    parse_coordinates,
+)
 
 
 MONDAY = date(2026, 10, 19)
@@ -103,6 +106,21 @@ def test_flags_every_stop_when_relaxed_day_is_too_packed():
 
     assert "Day too packed" in flags_for(checked, "first")
     assert "Day too packed" in flags_for(checked, "second")
+
+
+def test_light_day_summary_only_applies_to_full_days():
+    place = make_place("park")
+    itinerary = make_itinerary([
+        Stop(place_id="park", date=date(2026, 10, 19), start="10:00", reason="Full day stop"),
+    ])
+
+    checked = check_itinerary(itinerary, {"park": place})
+
+    assert checked.day_flags["2026-10-19"] == ["Light day (1 stop)"]
+    assert checked.day_flags["2026-10-20"] == ["Light day (0 stops)"]
+    assert "2026-10-18" not in checked.day_flags
+    assert "2026-10-21" not in checked.day_flags
+    assert checked.stops[0].flags == []
 
 
 def test_check_returns_copy_and_clears_stale_flags():
@@ -213,3 +231,70 @@ def test_normal_daytime_hours_still_work():
     ])
 
     assert flags_for(check_itinerary(itinerary, {"day-place": place}), "day-place") == []
+
+
+def test_check_in_time_window_flags_early_stop():
+    place = make_place("lobby")
+    itinerary = make_itinerary([
+        Stop(place_id="lobby", date=date(2026, 10, 18), start="10:00", reason="Early stop"),
+        Stop(place_id="lobby", date=date(2026, 10, 18), start="16:00", reason="Later stop"),
+    ])
+
+    checked = check_itinerary(itinerary, {"lobby": place})
+
+    assert "Before check-in (check-in 15:00)" in flags_for(checked, "lobby")
+    assert checked.stops[1].flags == []
+
+
+def test_transfer_day_uses_old_and_new_hotel_windows_and_distances():
+    old_hotel = Hotel(
+        name="Old hotel", city="Johor Bahru", lat=1.0, lng=103.0,
+        check_in=date(2026, 10, 18), check_out=date(2026, 10, 20),
+    )
+    new_hotel = Hotel(
+        name="New hotel", city="Genting Highlands", lat=1.2, lng=103.2,
+        check_in=date(2026, 10, 20), check_out=date(2026, 10, 22),
+    )
+    old_place = make_place("old-place", lat=1.0, lng=103.0)
+    new_place = make_place("new-place", lat=1.2, lng=103.2)
+    itinerary = Itinerary(
+        hotels=[old_hotel, new_hotel],
+        interests=["nature"],
+        pace="relaxed",
+        stops=[
+            Stop(place_id="old-place", date=date(2026, 10, 20), start="09:00", reason="Old hotel stop"),
+            Stop(place_id="new-place", date=date(2026, 10, 20), start="17:00", reason="New hotel stop"),
+        ],
+        revision_note="Transfer test",
+    )
+
+    checked = check_itinerary(itinerary, {"old-place": old_place, "new-place": new_place})
+
+    assert checked.stops[0].flags == []
+    assert checked.stops[1].flags == []
+
+
+def test_day_plan_classifies_check_in_full_transfer_and_check_out_days():
+    old_hotel = Hotel(
+        name="Old hotel", city="Johor Bahru", lat=1.0, lng=103.0,
+        check_in=date(2026, 12, 14), check_out=date(2026, 12, 16),
+    )
+    new_hotel = Hotel(
+        name="New hotel", city="Genting Highlands", lat=1.2, lng=103.2,
+        check_in=date(2026, 12, 16), check_out=date(2026, 12, 21),
+    )
+    itinerary = Itinerary(
+        hotels=[old_hotel, new_hotel], interests=["nature"], pace="relaxed",
+        stops=[], revision_note="Day plan test",
+    )
+
+    plans = day_plan(itinerary)
+
+    assert [plan["day_type"] for plan in plans] == [
+        "check-in", "full", "transfer", "full", "full", "full", "full", "check-out",
+    ]
+    assert plans[0]["date"] == date(2026, 12, 14)
+    assert plans[1]["date"] == date(2026, 12, 15)
+    assert plans[2]["date"] == date(2026, 12, 16)
+    assert plans[-1]["date"] == date(2026, 12, 21)
+    assert plans[-1]["hotel"] is None

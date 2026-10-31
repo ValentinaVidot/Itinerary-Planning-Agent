@@ -683,6 +683,249 @@
     "description": "Indoor theme park at First World Plaza with rides for all ages, good on rainy or cold days."
   },
   {
+    "id": "gh-awana-skyway",
+    "name": "Awana SkyWay cable car",
+    "city": "Genting Highlands",
+    "area": "Awana SkyCentral",
+    "lat": 3.4035,
+    "lng": 101.782921,
+    "tags": [
+      "nature",
+      "adventure"
+    ],
+    "hours": {
+      "mon": {
+        "open": "07:00",
+        "close": "23:00"
+      },
+      "tue": {
+        "open": "07:00",
+        "close": "23:00"
+      },
+      "wed": {
+        "open": "07:00",
+        "close": "23:00"
+      },
+      "thu": {
+        "open": "07:00",
+        "close": "23:00"
+      },
+      "fri": {
+        "open": "07:00",
+        "close": "23:00"
+      },
+      "sat": {
+        "open": "07:00",
+        "close": "23:00"
+      },
+      "sun": {
+        "open": "07:00",
+        "close": "23:00"
+      }
+    },
+    "visit_minutes": 45,
+    "description": "Cable car from Awana SkyCentral up to SkyAvenue with rainforest views, passing Chin Swee Temple. About 10-15 minutes each way; queues can be long at weekends."
+  },
+  {
+    "id": "gh-crockfords",
+    "name": "Crockfords, Resorts World Genting",
+    "city": "Genting Highlands",
+    "area": "Resorts World Genting",
+    "lat": 3.424395,
+    "lng": 101.796609,
+    "tags": [
+      "luxury",
+      "food"
+    ],
+    "hours": {
+      "mon": {
+        "open": "15:00",
+        "close": "18:00"
+      },
+      "tue": {
+        "open": "15:00",
+        "close": "18:00"
+      },
+      "wed": {
+        "open": "15:00",
+        "close": "18:00"
+      },
+      "thu": {
+        "open": "15:00",
+        "close": "18:00"
+      },
+      "fri": {
+        "open": "15:00",
+        "close": "18:00"
+      },
+      "sat": {
+        "open": "15:00",
+        "close": "18:00"
+      },
+      "sun": {
+        "open": "15:00",
+        "close": "18:00"
+      }
+    },
+    "visit_minutes": 90,
+    "description": "Luxury hotel at the hilltop; afternoon tea for a treat. Hours are a guess: the lobby cafe closed for upgrading in July 2024, so check before going."
+  },
+  {
+    "id": "gh-chateau-spa",
+    "name": "The Chateau Spa & Wellness Resort",
+    "city": "Genting Highlands",
+    "area": "Bukit Tinggi (Berjaya Hills)",
+    "lat": 3.404508,
+    "lng": 101.839613,
+    "tags": [
+      "wellness",
+      "culture"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "20:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "20:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "20:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "20:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "20:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "20:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "20:00"
+      }
+    },
+    "visit_minutes": 150,
+    "description": "French-style chateau resort with a spa in Berjaya Hills, off the Karak Highway. Much further by road than it looks on a map (about 40 min from Genting). Hours unverified; call ahead to book a treatment as a day guest."
+  },
+  {
+    "id": "gh-skysymphony",
+    "name": "SkySymphony",
+    "city": "Genting Highlands",
+    "area": "SkyAvenue",
+    "lat": 3.425043,
+    "lng": 101.796393,
+    "tags": [
+      "culture",
+      "family"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "23:59"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "23:59"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "23:59"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "23:59"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "23:59"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "23:59"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "23:59"
+      }
+    },
+    "visit_minutes": 20,
+    "description": "Free 15-minute light and sound show with moving lights over the SkyAvenue atrium: every 2 hours from 10am to 6pm, then hourly until midnight. Some recent reviews say it did not run, so check on the day."
+  },
+  {
+    "id": "gh-premium-outlets",
+    "name": "Genting Highlands Premium Outlets",
+    "city": "Genting Highlands",
+    "area": "Awana (KM13)",
+    "lat": 3.403377,
+    "lng": 101.783116,
+    "tags": [
+      "shopping",
+      "food"
+    ],
+    "hours": {
+      "mon": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "tue": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "wed": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "thu": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "fri": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sat": {
+        "open": "10:00",
+        "close": "22:00"
+      },
+      "sun": {
+        "open": "10:00",
+        "close": "22:00"
+      }
+    },
+    "visit_minutes": 150,
+    "description": "Open-air outlet mall next to the Awana SkyWay station, with brand outlets and a food court. Good to combine with the cable car."
+  },
+  {
+    "id": "gh-arena-of-stars",
+    "name": "Arena of Stars",
+    "city": "Genting Highlands",
+    "area": "Resorts World Genting",
+    "lat": 3.42252,
+    "lng": 101.79371,
+    "tags": [
+      "nightlife",
+      "culture"
+    ],
+    "hours": {
+      "mon": null,
+      "tue": null,
+      "wed": null,
+      "thu": null,
+      "fri": null,
+      "sat": null,
+      "sun": null
+    },
+    "visit_minutes": 150,
+    "description": "Concert and show venue at Resorts World Genting. Only open on event nights (shows usually start around 6pm). If you have tickets, set the hours for that date."
+  },
+  {
     "id": "kl-central-market",
     "name": "Central Market (Pasar Seni)",
     "city": "Kuala Lumpur",

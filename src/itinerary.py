@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 from file_access import ToolError, files
 from lab_support.events import emit_event
@@ -67,15 +67,32 @@ class Hotel(BaseModel):
     lng: float
     check_in: date
     check_out: date
-    arrival_time: str = "15:00"
-    departure_time: str = "11:00"
+    check_in_time: str = "15:00"
+    check_out_time: str = "11:00"
 
-    @field_validator("arrival_time", "departure_time")
+    @model_validator(mode="before")
+    @classmethod
+    def migrate_hotel_times(cls, value):
+        if isinstance(value, dict):
+            value = dict(value)
+            value.setdefault("check_in_time", value.pop("arrival_time", "15:00"))
+            value.setdefault("check_out_time", value.pop("departure_time", "11:00"))
+        return value
+
+    @field_validator("check_in_time", "check_out_time")
     @classmethod
     def valid_hotel_time(cls, value: str) -> str:
         if not TIME_PATTERN.fullmatch(value) or int(value[-2:]) not in {0, 30}:
             raise ValueError("hotel times must use HH:MM")
         return value
+
+    @property
+    def arrival_time(self) -> str:
+        return self.check_in_time
+
+    @property
+    def departure_time(self) -> str:
+        return self.check_out_time
 
     @field_validator("check_out")
     @classmethod
@@ -127,6 +144,7 @@ class Itinerary(BaseModel):
     stops: list[Stop]
     approved: bool = False
     revision_note: str
+    day_flags: dict[str, list[str]] = Field(default_factory=dict)
 
 
 def workspace_root() -> Path:
@@ -210,21 +228,27 @@ def load_saved_hotels() -> list[Hotel]:
             raw = data.get("hotels", [])
             if not isinstance(raw, list):
                 raise ValueError
-            return [Hotel.model_validate_json(json.dumps(item)) for item in raw]
+            return [Hotel.model_validate(item, strict=False) for item in raw]
         except (OSError, ValueError, UnicodeError, ValidationError):
             raise ToolError("Could not read the saved hotels for this profile.") from None
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(raw, list):
             raise ValueError
-        return [Hotel.model_validate_json(json.dumps(item)) for item in raw]
+        return [Hotel.model_validate(item, strict=False) for item in raw]
     except (OSError, ValueError, UnicodeError, ValidationError):
         raise ToolError("Could not read the saved hotels for this profile.") from None
 
 
 def save_saved_hotels(hotels: list[Hotel]) -> None:
-    validated = [_validate(Hotel, hotel.model_dump() if isinstance(hotel, Hotel) else hotel,
-                           "Hotel data is invalid.") for hotel in hotels]
+    validated = []
+    for hotel in hotels:
+        data = hotel.model_dump() if isinstance(hotel, Hotel) else dict(hotel)
+        data.pop("hotel_id", None)
+        try:
+            validated.append(Hotel.model_validate(data, strict=False))
+        except ValidationError:
+            raise ToolError("Hotel data is invalid.") from None
     path = _json_path("hotels.json")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps([hotel.model_dump(mode="json") for hotel in validated], indent=2) + "\n",
@@ -272,8 +296,12 @@ def load_itinerary() -> Itinerary | None:
     if not path.exists():
         return None
     try:
-        return Itinerary.model_validate_json(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, UnicodeError, ValidationError):
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError
+        raw.setdefault("day_flags", {})
+        return Itinerary.model_validate(raw, strict=False)
+    except (OSError, ValueError, UnicodeError, ValidationError, TypeError):
         raise ToolError("Saved itinerary data is invalid.") from None
 
 
@@ -285,8 +313,12 @@ def itinerary_markdown(itinerary: Itinerary, places: dict[str, Place] | None = N
     places = places or {}
     lines = ["# Itinerary", "", f"Pace: {itinerary.pace}", f"Approved: {itinerary.approved}",
              f"Revision: {itinerary.revision_note}", ""]
-    for day in sorted({stop.date for stop in itinerary.stops}):
+    for day in trip_dates(itinerary.hotels, itinerary.stops):
         lines.extend([f"## {day.isoformat()}", ""])
+        for flag in itinerary.day_flags.get(day.isoformat(), []):
+            lines.append(f"Day summary: {flag}")
+        if itinerary.day_flags.get(day.isoformat()):
+            lines.append("")
         for stop in sorted((s for s in itinerary.stops if s.date == day), key=lambda s: s.start):
             labels = []
             if stop.locked:
@@ -345,7 +377,7 @@ def create_trip(hotels: list[Hotel], interests: list[str], pace: str) -> Itinera
     itinerary = _validate(Itinerary, {
         "hotels": [hotel.model_dump() if isinstance(hotel, Hotel) else hotel for hotel in hotels],
         "interests": interests, "pace": pace, "stops": [], "approved": False,
-        "revision_note": "Trip created; no stops planned yet.",
+        "revision_note": "Trip created; no stops planned yet.", "day_flags": {},
     }, "Trip details are invalid.")
     save_itinerary_data(itinerary)
     return itinerary
@@ -391,25 +423,122 @@ def haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     return radius * 2 * math.asin(math.sqrt(a))
 
 
-def _hotel_for(hotels: list[Hotel], day: date) -> Hotel | None:
-    return next((hotel for hotel in hotels if hotel.check_in <= day < hotel.check_out), None)
+def trip_dates(hotels: list[Hotel], stops: list[Stop] | None = None) -> list[date]:
+    """Return every calendar date covered by the booked stays and saved stops."""
+    dates = [stop.date for stop in (stops or [])]
+    if hotels:
+        first = min(hotel.check_in for hotel in hotels)
+        last = max(hotel.check_out for hotel in hotels)
+        dates.extend(first + timedelta(days=offset) for offset in range((last - first).days + 1))
+    return sorted(set(dates))
+
+
+def _time_after(minutes: int) -> str:
+    hour, minute = divmod(minutes, 60)
+    return f"{hour:02d}:{minute:02d}"
+
+
+def day_plan(itinerary: Itinerary) -> list[dict]:
+    """Classify every trip date and describe its hotel planning windows."""
+    hotels = sorted(itinerary.hotels, key=lambda hotel: hotel.check_in)
+    if not hotels:
+        return []
+    first = min(hotel.check_in for hotel in hotels)
+    last = max(hotel.check_out for hotel in hotels)
+    plans = []
+    for offset in range((last - first).days + 1):
+        current = first + timedelta(days=offset)
+        incoming = next((hotel for hotel in hotels if hotel.check_in == current), None)
+        outgoing = next((hotel for hotel in hotels if hotel.check_out == current), None)
+        night_hotel = next(
+            (hotel for hotel in hotels if hotel.check_in <= current < hotel.check_out),
+            None,
+        )
+        if incoming and outgoing:
+            day_type = "check-in-and-out" if incoming is outgoing else "transfer"
+        elif incoming:
+            day_type = "check-in"
+        elif outgoing and current == last:
+            day_type = "check-out"
+        else:
+            day_type = "full"
+        windows = []
+        if day_type in {"transfer", "check-in-and-out"}:
+            windows.append({
+                "start": "00:00",
+                "end": outgoing.check_out_time,
+                "hotel": outgoing,
+            })
+            windows.append({
+                "start": _time_after(_minutes(incoming.check_in_time) + 30),
+                "end": "24:00",
+                "hotel": incoming,
+            })
+        elif day_type == "check-in":
+            windows.append({
+                "start": _time_after(_minutes(incoming.check_in_time) + 30),
+                "end": "24:00",
+                "hotel": incoming,
+            })
+        elif day_type == "check-out":
+            windows.append({
+                "start": "00:00",
+                "end": outgoing.check_out_time,
+                "hotel": outgoing,
+            })
+        else:
+            windows.append({"start": "00:00", "end": "24:00", "hotel": night_hotel})
+        plans.append({
+            "date": current,
+            "weekday": current.strftime("%A"),
+            "day_type": day_type,
+            "hotel": night_hotel,
+            "windows": windows,
+        })
+    return plans
+
+
+def _window_for_stop(plan: dict, stop: Stop) -> dict | None:
+    start = _minutes(stop.start)
+    for window in plan["windows"]:
+        window_start = _minutes(window["start"])
+        window_end = 24 * 60 if window["end"] == "24:00" else _minutes(window["end"])
+        if window_start <= start < window_end:
+            return window
+    return None
 
 
 def check_itinerary(itinerary: Itinerary, places: dict[str, Place]) -> Itinerary:
     """Return a copy with deterministic opening, distance, overlap, and pace flags."""
     stops = [stop.model_copy(update={"flags": []}) for stop in itinerary.stops]
-    by_day: dict[date, list[Stop]] = {}
+    plans = day_plan(itinerary)
+    plans_by_date = {plan["date"]: plan for plan in plans}
+    by_day: dict[date, list[Stop]] = {plan["date"]: [] for plan in plans}
     for stop in stops:
         by_day.setdefault(stop.date, []).append(stop)
         place = places.get(stop.place_id)
         if place is None:
             stop.flags.append("Not in dataset")
             continue
-        hotel = _hotel_for(itinerary.hotels, stop.date)
+        plan = plans_by_date.get(stop.date)
+        window = _window_for_stop(plan, stop) if plan else None
+        hotel = window["hotel"] if window else (plan.get("hotel") if plan else None)
         if hotel is not None:
             distance = haversine_km(place.lat, place.lng, hotel.lat, hotel.lng)
             if distance > 15:
                 stop.flags.append(f"Far from hotel ({distance:.1f} km)")
+        stop_end = _minutes(stop.start) + place.visit_minutes
+        if plan:
+            if plan["day_type"] == "check-in" and _minutes(stop.start) < _minutes(plan["windows"][0]["start"]):
+                stop.flags.append(f"Before check-in (check-in {plan['windows'][0]['hotel'].check_in_time})")
+            elif plan["day_type"] == "check-out" and stop_end > _minutes(plan["windows"][0]["end"]):
+                stop.flags.append(f"After check-out (check-out {plan['windows'][0]['hotel'].check_out_time})")
+            elif plan["day_type"] in {"transfer", "check-in-and-out"}:
+                old_window, new_window = plan["windows"]
+                if _minutes(stop.start) < _minutes(new_window["start"]) and stop_end > _minutes(old_window["end"]):
+                    stop.flags.append(f"After check-out (check-out {old_window['hotel'].check_out_time})")
+                elif window is None:
+                    stop.flags.append(f"Outside transfer window (before {old_window['end']} or from {new_window['start']})")
         weekday_index = stop.date.weekday()
         hours = place.hours[WEEKDAYS[weekday_index]]
         current_open = _fits_opening_hours(_minutes(stop.start), place.visit_minutes, hours)
@@ -423,7 +552,9 @@ def check_itinerary(itinerary: Itinerary, places: dict[str, Place]) -> Itinerary
             stop.flags.append(f"Closed on {stop.date.strftime('%A')}")
         elif hours is not None:
             stop.flags.append(f"Outside opening hours (opens {hours.open}, closes {hours.close})")
-    for day_stops in by_day.values():
+    day_flags: dict[str, list[str]] = {}
+    minimum_stops = 3 if itinerary.pace == "relaxed" else 5
+    for day, day_stops in by_day.items():
         ordered = sorted(day_stops, key=lambda stop: stop.start)
         total = 0
         previous = None
@@ -444,7 +575,12 @@ def check_itinerary(itinerary: Itinerary, places: dict[str, Place]) -> Itinerary
             for stop in day_stops:
                 if "Day too packed" not in stop.flags:
                     stop.flags.append("Day too packed")
-    return itinerary.model_copy(update={"stops": stops, "approved": False})
+        plan = plans_by_date.get(day)
+        if plan and plan["day_type"] == "full" and len(day_stops) < minimum_stops:
+            day_flags[day.isoformat()] = [f"Light day ({len(day_stops)} stop{'s' if len(day_stops) != 1 else ''})"]
+    return itinerary.model_copy(update={
+        "stops": stops, "approved": False, "day_flags": day_flags,
+    })
 
 
 def export_ics(itinerary: Itinerary, places: dict[str, Place]) -> str:
