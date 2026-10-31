@@ -88,14 +88,34 @@ def _apply_theme():
         h2, h3 {
             color: #254f87;
         }
+        .hero-subheading {
+            color: #254f87;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0.25rem 0 1rem;
+        }
         h3 {
             text-shadow: 1px 1px 3px rgba(37, 79, 135, 0.2);
         }
         [data-testid="stVerticalBlockBorderWrapper"] {
             background: #FDF4CB;
-            border-color: #9bb9df;
+            border: 2px solid #7fa4d1;
             border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(37, 79, 135, 0.08);
+            box-shadow:
+                0 3px 6px rgba(255, 255, 255, 0.95) inset,
+                0 -2px 0 rgba(124, 157, 199, 0.25) inset,
+                0 7px 0 rgba(115, 151, 199, 0.55),
+                0 14px 26px rgba(37, 79, 135, 0.32);
+            transform: translateY(-2px);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        [data-testid="stVerticalBlockBorderWrapper"]:hover {
+            box-shadow:
+                0 3px 6px rgba(255, 255, 255, 1) inset,
+                0 -2px 0 rgba(124, 157, 199, 0.3) inset,
+                0 8px 0 rgba(115, 151, 199, 0.65),
+                0 18px 32px rgba(37, 79, 135, 0.4);
+            transform: translateY(-5px);
         }
         .memory-card {
             background: #f1eaff;
@@ -108,15 +128,72 @@ def _apply_theme():
             position: fixed;
             right: 1.5rem;
             bottom: 1.5rem;
+            width: fit-content;
+            margin-left: auto;
             z-index: 999;
         }
+        [data-testid="stButton"] > button,
+        [data-testid="stDownloadButton"] > button,
         div[data-testid="stPopover"] > button {
-            border: 2px solid #9b7bd3;
+            border: 2px solid #051650;
             border-radius: 999px;
-            background: #f1eaff;
-            color: #254f87;
-            box-shadow: 0 4px 14px rgba(37, 79, 135, 0.2);
+            background: #051650;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(5, 22, 80, 0.3);
             font-weight: 600;
+            padding: 0.65rem 1.1rem;
+            white-space: nowrap;
+        }
+        [data-testid="stButton"] > button:hover,
+        [data-testid="stDownloadButton"] > button:hover,
+        div[data-testid="stPopover"] > button:hover {
+            background: #0a266d;
+            border-color: #051650;
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(5, 22, 80, 0.4);
+        }
+        [data-testid="stButton"]:has(button[kind="primary"]) > button {
+            border-color: #176b3a;
+            background: linear-gradient(135deg, #2e9f5b 0%, #176b3a 100%);
+            box-shadow: 0 4px 12px rgba(23, 107, 58, 0.35);
+        }
+        [class*="st-key-add_hotel"] button,
+        [class*="st-key-create_trip"] button,
+        [class*="st-key-next_review"] button,
+        [class*="st-key-save_my_edits"] button,
+        [class*="st-key-previous_step_1"] button {
+            border-color: #176b3a;
+            background: linear-gradient(135deg, #2e9f5b 0%, #176b3a 100%);
+            box-shadow: 0 4px 12px rgba(23, 107, 58, 0.35);
+        }
+        [data-testid="stButton"]:has(button[kind="primary"]) > button:hover {
+            background: linear-gradient(135deg, #3fba70 0%, #20824a 100%);
+            border-color: #12552e;
+            box-shadow: 0 6px 16px rgba(23, 107, 58, 0.45);
+        }
+        [class*="st-key-add_hotel"] button:hover,
+        [class*="st-key-create_trip"] button:hover,
+        [class*="st-key-next_review"] button:hover,
+        [class*="st-key-save_my_edits"] button:hover,
+        [class*="st-key-previous_step_1"] button:hover {
+            background: linear-gradient(135deg, #3fba70 0%, #20824a 100%);
+            border-color: #12552e;
+            box-shadow: 0 6px 16px rgba(23, 107, 58, 0.45);
+        }
+        [class*="st-key-remove_hotel_"] button,
+        [class*="st-key-remove_memory_"] button {
+            border: 1px solid #d66b72;
+            border-radius: 4px;
+            background: #f7c7ca;
+            color: #7d1f2a;
+            box-shadow: none;
+        }
+        [class*="st-key-remove_hotel_"] button:hover,
+        [class*="st-key-remove_memory_"] button:hover {
+            border-color: #b94b55;
+            background: #f2aeb3;
+            color: #64151e;
+            box-shadow: none;
         }
         </style>
         """,
@@ -318,7 +395,7 @@ def _trip_setup():
                     key="hotel_form_departure_time",
                 )
 
-            if st.button("Add hotel"):
+            if st.button("Add hotel", key="add_hotel"):
                 try:
                     if not hotel_name.strip():
                         raise ValueError("Enter a hotel name.")
@@ -372,53 +449,57 @@ def _trip_setup():
                 "Pace", ["relaxed", "packed"], horizontal=True,
                 index=["relaxed", "packed"].index(st.session_state.get("pace", "relaxed")),
             )
-    if st.button("Create trip", type="primary"):
-        try:
-            if not hotels:
-                st.error("Add at least one hotel before creating the trip.")
-                return
-            for index, draft in enumerate(hotels):
-                if draft.get("check_out") <= draft.get("check_in"):
-                    st.error(f"Hotel {index + 1}: check-out must be after check-in.")
+    create_column, next_column = st.columns(2)
+    with create_column:
+        if st.button("Create trip", type="primary", key="create_trip"):
+            try:
+                if not hotels:
+                    st.error("Add at least one hotel before creating the trip.")
                     return
-            ordered_stays = sorted(hotels, key=lambda draft: draft["check_in"])
-            for previous, current in zip(ordered_stays, ordered_stays[1:]):
-                if current["check_in"] < previous["check_out"]:
-                    st.error(
-                        f"Hotel stays overlap: {previous['name']} ends on "
-                        f"{previous['check_out']} but {current['name']} starts on "
-                        f"{current['check_in']}."
-                    )
-                    return
-            parsed = [Hotel(
-                name=draft["name"],
-                city=draft["city"],
-                lat=draft["lat"],
-                lng=draft["lng"],
-                check_in=draft["check_in"],
-                check_out=draft["check_out"],
-                arrival_time=draft.get("arrival_time", "15:00"),
-                departure_time=draft.get("departure_time", "11:00"),
-            ) for draft in hotels]
-            itinerary = create_trip(parsed, list(interests), pace)
-            save_saved_hotels(parsed)
-            st.session_state.interests = list(interests)
-            st.session_state.pace = pace
-            st.success(f"Created a {len(itinerary.hotels)}-hotel trip. Planning it now...")
-            result = _run_turn(
-                "Plan my whole trip now. Use find_places for each hotel and date range, "
-                "check the proposed days, and save the planned stops with save_itinerary. "
-                "Do not ask me to repeat the hotel or trip details; they are already in the context.",
-                {"action": "create_trip", "interests": list(interests), "pace": pace},
-            )
-            st.session_state.trip_ready_for_next = result.status != "failed"
-        except (ValueError, TypeError) as exc:
-            st.error(f"Trip details are invalid: {exc}")
+                for index, draft in enumerate(hotels):
+                    if draft.get("check_out") <= draft.get("check_in"):
+                        st.error(f"Hotel {index + 1}: check-out must be after check-in.")
+                        return
+                ordered_stays = sorted(hotels, key=lambda draft: draft["check_in"])
+                for previous, current in zip(ordered_stays, ordered_stays[1:]):
+                    if current["check_in"] < previous["check_out"]:
+                        st.error(
+                            f"Hotel stays overlap: {previous['name']} ends on "
+                            f"{previous['check_out']} but {current['name']} starts on "
+                            f"{current['check_in']}."
+                        )
+                        return
+                parsed = [Hotel(
+                    name=draft["name"],
+                    city=draft["city"],
+                    lat=draft["lat"],
+                    lng=draft["lng"],
+                    check_in=draft["check_in"],
+                    check_out=draft["check_out"],
+                    arrival_time=draft.get("arrival_time", "15:00"),
+                    departure_time=draft.get("departure_time", "11:00"),
+                ) for draft in hotels]
+                itinerary = create_trip(parsed, list(interests), pace)
+                save_saved_hotels(parsed)
+                st.session_state.interests = list(interests)
+                st.session_state.pace = pace
+                st.success(f"Created a {len(itinerary.hotels)}-hotel trip. Planning it now...")
+                result = _run_turn(
+                    "Plan my whole trip now. Use find_places for each hotel and date range, "
+                    "check the proposed days, and save the planned stops with save_itinerary. "
+                    "Do not ask me to repeat the hotel or trip details; they are already in the context.",
+                    {"action": "create_trip", "interests": list(interests), "pace": pace},
+                )
+                st.session_state.trip_ready_for_next = result.status != "failed"
+            except (ValueError, TypeError) as exc:
+                st.error(f"Trip details are invalid: {exc}")
     has_saved_trip = load_itinerary() is not None
-    if hotels and (st.session_state.get("trip_ready_for_next") or has_saved_trip):
-        st.success("Your saved trip is ready to review.")
-        if st.button("Next: Review itinerary", type="primary"):
-            _go_to_step(2)
+    with next_column:
+        if hotels and (st.session_state.get("trip_ready_for_next") or has_saved_trip):
+            ready_message, ready_button = st.columns([3, 2], vertical_alignment="center")
+            ready_message.success("Your saved trip is ready to review.")
+            if ready_button.button("Next: Review itinerary", type="primary", key="next_review"):
+                _go_to_step(2)
 
 
 def _editor():
@@ -426,7 +507,7 @@ def _editor():
     if itinerary is None:
         st.info("Create a trip to edit its itinerary.")
         return
-    st.header("Step 2 → Review your itinerary")
+    st.header("Step 2 → Itinerary editor")
     if itinerary.approved:
         st.success("Approved itinerary — all stops are locked. Select “Unlock itinerary” below if you need to make changes.")
     places = load_places()
@@ -443,86 +524,88 @@ def _editor():
             )
             st.rerun()
         return
-    day_tabs = st.tabs([day.isoformat() for day in days])
-    for day, day_tab in zip(days, day_tabs):
-        day_stops = sorted((stop for stop in itinerary.stops if stop.date == day), key=lambda stop: stop.start)
-        with day_tab:
-            rows = [{
-                "Time": stop.start,
-                "Place": places[stop.place_id].name if stop.place_id in places else stop.place_id,
-                "Reason": stop.reason,
-                "Flags": "WARNING: " + "; ".join(stop.flags) if stop.flags else "",
-                "Locked": itinerary.approved or stop.locked,
-                "Remove": False,
-            } for stop in day_stops]
-            edited = st.data_editor(
-                rows, key=f"day_editor_{day.isoformat()}", hide_index=True, num_rows="fixed",
-                column_config={
-                    "Time": st.column_config.TextColumn("Time (HH:MM)"),
-                    "Place": st.column_config.SelectboxColumn("Place", options=sorted(names), required=True),
-                    "Flags": st.column_config.TextColumn("Flags (warning)", disabled=True),
-                    "Locked": st.column_config.CheckboxColumn("Locked", disabled=True),
-                    "Remove": st.column_config.CheckboxColumn("Remove", disabled=itinerary.approved),
-                },
-                disabled=itinerary.approved,
-            )
-            if any(row["Flags"] for row in rows):
-                st.warning("This day has flagged stops. Review the warning text before saving.")
-            st.session_state[f"edited_{day.isoformat()}"] = (
-                edited if isinstance(edited, list) else edited.to_dict("records")
-            )
+    editor_column, replan_column = st.columns([1.5, 1], gap="medium")
+    with editor_column:
+        with st.container(border=True):
+            day_tabs = st.tabs([day.isoformat() for day in days])
+            for day, day_tab in zip(days, day_tabs):
+                day_stops = sorted((stop for stop in itinerary.stops if stop.date == day), key=lambda stop: stop.start)
+                with day_tab:
+                    rows = [{
+                        "Time": stop.start,
+                        "Place": places[stop.place_id].name if stop.place_id in places else stop.place_id,
+                        "Reason": stop.reason,
+                        "Flags": "WARNING: " + "; ".join(stop.flags) if stop.flags else "",
+                        "Locked": itinerary.approved or stop.locked,
+                        "Remove": False,
+                    } for stop in day_stops]
+                    edited = st.data_editor(
+                        rows, key=f"day_editor_{day.isoformat()}", hide_index=True, num_rows="fixed",
+                        column_config={
+                            "Time": st.column_config.TextColumn("Time (HH:MM)"),
+                            "Place": st.column_config.SelectboxColumn("Place", options=sorted(names), required=True),
+                            "Flags": st.column_config.TextColumn("Flags (warning)", disabled=True),
+                            "Locked": st.column_config.CheckboxColumn("Locked", disabled=True),
+                            "Remove": st.column_config.CheckboxColumn("Remove", disabled=itinerary.approved),
+                        },
+                        disabled=itinerary.approved,
+                    )
+                    if any(row["Flags"] for row in rows):
+                        st.warning("This day has flagged stops. Review the warning text before saving.")
+                    st.session_state[f"edited_{day.isoformat()}"] = (
+                        edited if isinstance(edited, list) else edited.to_dict("records")
+                    )
 
-    save_column, unlock_column = st.columns(2)
-    if save_column.button("Save my edits", disabled=itinerary.approved):
-        try:
-            updated = []
-            ui_edits = {}
-            for day in sorted({stop.date for stop in itinerary.stops}):
-                original = [stop for stop in itinerary.stops if stop.date == day]
-                records = st.session_state.get(f"edited_{day.isoformat()}", [])
-                ui_edits[day.isoformat()] = records
-                for old, row in zip(original, records):
-                    if row.get("Remove"):
-                        if old.locked:
-                            raise ValueError(f"Locked stop at {old.start} cannot be removed.")
-                        continue
-                    if old.locked and (row["Place"] != places[old.place_id].name or row["Time"] != old.start):
-                        raise ValueError(f"Locked stop at {old.start} cannot be moved.")
-                    updated.append(Stop(
-                        place_id=names.get(row["Place"], row["Place"]), date=day,
-                        start=str(row["Time"]), reason=str(row["Reason"]),
-                        locked=old.locked,
-                    ))
-            checked = check_itinerary(itinerary.model_copy(update={
-                "stops": updated, "approved": False, "revision_note": "Saved UI edits.",
-            }), places)
-            save_itinerary_data(checked)
-            st.success("Edits saved and checked without a model call.")
-            st.rerun()
-        except (ValueError, TypeError, KeyError) as exc:
-            st.error(f"Could not save edits: {exc}")
-    if unlock_column.button("Unlock itinerary", disabled=not itinerary.approved):
-        unlocked_stops = [stop.model_copy(update={"locked": False}) for stop in itinerary.stops]
-        save_itinerary_data(itinerary.model_copy(update={"approved": False, "stops": unlocked_stops}))
-        st.success("Itinerary unlocked. You can now edit or remove stops.")
-        st.rerun()
+            save_column, unlock_column = st.columns(2)
+            if save_column.button("Save my edits", key="save_my_edits", disabled=itinerary.approved):
+                try:
+                    updated = []
+                    ui_edits = {}
+                    for day in sorted({stop.date for stop in itinerary.stops}):
+                        original = [stop for stop in itinerary.stops if stop.date == day]
+                        records = st.session_state.get(f"edited_{day.isoformat()}", [])
+                        ui_edits[day.isoformat()] = records
+                        for old, row in zip(original, records):
+                            if row.get("Remove"):
+                                if old.locked:
+                                    raise ValueError(f"Locked stop at {old.start} cannot be removed.")
+                                continue
+                            if old.locked and (row["Place"] != places[old.place_id].name or row["Time"] != old.start):
+                                raise ValueError(f"Locked stop at {old.start} cannot be moved.")
+                            updated.append(Stop(
+                                place_id=names.get(row["Place"], row["Place"]), date=day,
+                                start=str(row["Time"]), reason=str(row["Reason"]),
+                                locked=old.locked,
+                            ))
+                    checked = check_itinerary(itinerary.model_copy(update={
+                        "stops": updated, "approved": False, "revision_note": "Saved UI edits.",
+                    }), places)
+                    save_itinerary_data(checked)
+                    st.success("Edits saved and checked without a model call.")
+                    st.rerun()
+                except (ValueError, TypeError, KeyError) as exc:
+                    st.error(f"Could not save edits: {exc}")
+            if unlock_column.button("Unlock itinerary", disabled=not itinerary.approved):
+                unlocked_stops = [stop.model_copy(update={"locked": False}) for stop in itinerary.stops]
+                save_itinerary_data(itinerary.model_copy(update={"approved": False, "stops": unlocked_stops}))
+                st.success("Itinerary unlocked. You can now edit or remove stops.")
+                st.rerun()
 
-    st.subheader("Optional re-planning request")
-    st.caption("Use this to change unlocked activities, for example: “add more cafés” or “make the evenings quieter.”")
-    extra = st.text_input("What would you like to change?", key="replan_wishes",
-                          disabled=itinerary.approved)
-    if st.button("Re-plan unlocked stops", disabled=itinerary.approved):
-        prompt = "I edited the itinerary. Re-plan only the unlocked stops."
-        if extra.strip():
-            prompt += f" Extra wishes: {extra.strip()}"
-        _run_turn(prompt, {"action": "replan_unlocked", "extra_wishes": extra})
-        st.rerun()
-    _step_navigation(previous_step=1, next_step=3, next_label="Next: Chat with your agent →")
-
-
+    with replan_column:
+        with st.container(border=True):
+            st.subheader("Optional re-planning request")
+            st.caption("Use this to change unlocked activities, for example: “add more cafés” or “make the evenings quieter.”")
+            extra = st.text_input("What would you like to change?", key="replan_wishes",
+                                  disabled=itinerary.approved)
+            if st.button("Re-plan unlocked stops", disabled=itinerary.approved):
+                prompt = "I edited the itinerary. Re-plan only the unlocked stops."
+                if extra.strip():
+                    prompt += f" Extra wishes: {extra.strip()}"
+                _run_turn(prompt, {"action": "replan_unlocked", "extra_wishes": extra})
+                st.rerun()
 def _chat():
     with st.popover("💬 Chat with your itinerary agent"):
-        st.caption("Choose what you want help with, then tell the agent what you need.")
+        st.caption("Ask questions, request itinerary changes, or add a lasting preference.")
         chat_mode = st.pills(
             "What would you like to do?",
             ["Ask a question", "Request itinerary changes", "Add a preference"],
@@ -554,10 +637,11 @@ def _memories():
     memories = load_memories()
     pending = [memory for memory in memories if memory["status"] == "pending"]
     approved = [memory for memory in memories if memory["status"] == "approved"]
-    if not pending and not approved:
-        return
     st.header("Memory approvals")
     st.caption("The agent may suggest remembering a lasting preference. Approve only preferences you want used in future planning.")
+    if not pending and not approved:
+        st.info("No memory suggestions yet.")
+        return
     for memory in pending:
         st.markdown(
             f'<div class="memory-card"><strong>🧠 The agent noticed a preference</strong><br>'
@@ -577,7 +661,7 @@ def _memories():
     for memory in approved:
         left, right = st.columns([4, 1])
         left.write(f"🧠 {memory['preference']} — {memory['evidence']}")
-        if right.button("Delete", key=f"delete_{memory['id']}"):
+        if right.button("Remove", key=f"remove_memory_{memory['id']}"):
             save_memories([item for item in memories if item["id"] != memory["id"]])
             st.rerun()
 
@@ -607,27 +691,27 @@ def main():
     title_column, profile_column = st.columns([8, 2], vertical_alignment="center")
     with title_column:
         st.title("🌴 Holi Holiday!")
-        st.subheader("Itinerary planning has never been this easy.")
+        st.markdown(
+            '<div class="hero-subheading">Itinerary planning has never been this easy.</div>',
+            unsafe_allow_html=True,
+        )
     _profile_selector(profile_column)
     _session()
     current_step = st.session_state.get("current_step", 1)
     if current_step == 1:
         _trip_setup()
-    elif current_step == 2:
-        _editor()
-    elif current_step == 3:
-        st.header("Step 3 → Chat with your itinerary agent")
-        st.caption("Ask questions, request itinerary changes, or add a lasting preference.")
-        _chat()
-        _step_navigation(previous_step=2, next_step=4, next_label="Next: Memory approvals →")
-    elif current_step == 4:
-        st.header("Step 4 → Memory approvals")
-        _memories()
-        _step_navigation(previous_step=3, next_step=5, next_label="Next: Approve and export →")
     else:
-        st.header("Step 5 → Approve and export")
-        _approve_export()
-        _step_navigation(previous_step=4)
+        _editor()
+        _chat()
+        memory_column, export_column = st.columns([1.5, 1], gap="medium")
+        with memory_column:
+            with st.container(border=True):
+                _memories()
+        with export_column:
+            with st.container(border=True):
+                _approve_export()
+            if st.button("← Previous", key="previous_step_1"):
+                _go_to_step(1)
 
 
 if __name__ == "__main__":
