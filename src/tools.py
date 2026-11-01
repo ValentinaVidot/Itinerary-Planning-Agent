@@ -10,13 +10,20 @@ from itinerary import (
     Itinerary,
     Stop,
     check_itinerary,
+    day_duration_minutes,
+    day_plan,
     haversine_km,
     load_itinerary,
     load_memories,
     load_places,
+    format_duration,
+    pace_target_label,
+    PACE_TARGETS,
     save_itinerary_data,
     save_memories,
 )
+
+APPROVED_ITINERARY_MESSAGE = "This itinerary is approved. Click Edit again to make changes."
 
 
 def _current_itinerary() -> Itinerary:
@@ -48,7 +55,9 @@ def find_places(city: str, tags: list[str], near_hotel: str) -> list[dict]:
             "id": place.id, "name": place.name, "area": place.area, "tags": place.tags,
             "distance_km": round(distance, 1), "hours": {
                 day: hours.model_dump() if hours else None for day, hours in place.hours.items()
-            }, "visit_minutes": place.visit_minutes, "description": place.description,
+            }, "visit_minutes": place.visit_minutes,
+            "min_visit_minutes": place.min_visit_minutes,
+            "description": place.description,
         })
     return sorted(results, key=lambda item: item["distance_km"])[:10]
 
@@ -70,6 +79,8 @@ def save_itinerary(stops: list[Stop], revision_note: str, date: str | None = Non
     """Save a checked itinerary while preserving every locked stop."""
     text_arg(revision_note, "revision_note", 600)
     itinerary = _current_itinerary()
+    if itinerary.approved:
+        raise ToolError(APPROVED_ITINERARY_MESSAGE)
     places = load_places()
     target_date = None
     if date is not None:
@@ -127,17 +138,23 @@ def save_itinerary(stops: list[Stop], revision_note: str, date: str | None = Non
         "stops": proposed, "approved": False, "revision_note": revision_note,
     }), places)
     result = save_itinerary_data(checked)
-    minimum = 3 if itinerary.pace == "relaxed" else 5
-    maximum = 4 if itinerary.pace == "relaxed" else 6
     warnings = []
-    for day, flags in checked.day_flags.items():
-        if target_date is not None and day != target_date.isoformat():
+    for plan in day_plan(checked):
+        day = plan["date"]
+        if target_date is not None and day != target_date:
             continue
-        if flags and flags[0].startswith("Light day"):
-            count = sum(stop.date.isoformat() == day for stop in checked.stops)
+        day_stops = [stop for stop in checked.stops if stop.date == day]
+        duration = day_duration_minutes(day_stops, places, plan)
+        if plan["day_type"] == "full" and duration < PACE_TARGETS[itinerary.pace]["minimum"]:
             warnings.append(
-                f"{day} has {count} stop{'s' if count != 1 else ''}; "
-                f"{itinerary.pace} pace expects {minimum}-{maximum}"
+                f"{day} is a light day at ~{format_duration(duration)}; "
+                f"{itinerary.pace} pace targets {pace_target_label(itinerary.pace)}"
+            )
+        if duration > PACE_TARGETS[itinerary.pace]["maximum"]:
+            warnings.append(
+                f"{day} is too packed at ~{format_duration(duration)}; "
+                f"{itinerary.pace} pace allows up to "
+                f"{format_duration(PACE_TARGETS[itinerary.pace]['maximum'])}"
             )
     return {
         **result,
