@@ -39,6 +39,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "Cat cafe upstairs (2F) at 28-01 Jalan Austin Height 7/7 with resident cats, coffee, fruit tarts and cakes. Closed Wednesdays; no children under 6."
   },
   {
@@ -83,6 +84,7 @@
       }
     },
     "visit_minutes": 120,
+    "min_visit_minutes": 120,
     "description": "A self-guided route through old town landmarks."
   },
   {
@@ -127,6 +129,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "Local cafes and casual food stalls in the historic centre."
   },
   {
@@ -168,6 +171,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "A palace museum showcasing Johor royal history."
   },
   {
@@ -212,6 +216,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "A waterfront promenade for an easy evening walk."
   },
   {
@@ -256,6 +261,7 @@
       }
     },
     "visit_minutes": 240,
+    "min_visit_minutes": 240,
     "description": "A rainforest reserve for hiking and wildlife."
   },
   {
@@ -300,6 +306,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "Garden courtyard cafe that looks like a resort, known for its matcha drinks and plated brunch."
   },
   {
@@ -344,6 +351,7 @@
       }
     },
     "visit_minutes": 45,
+    "min_visit_minutes": 45,
     "description": "Custom mechanical keyboard store (lot S-039B) where you can try switches and keycaps."
   },
   {
@@ -387,6 +395,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "Foot reflexology and massage in The Mall, Mid Valley Southkey."
   },
   {
@@ -414,6 +423,7 @@
       "sun": null
     },
     "visit_minutes": 120,
+    "min_visit_minutes": 45,
     "description": "Pasar malam on Jalan Seladang beside KSL City Mall, Monday nights only. Street food, snacks and cheap finds."
   },
   {
@@ -459,6 +469,7 @@
       }
     },
     "visit_minutes": 150,
+    "min_visit_minutes": 150,
     "description": "Large IKEA store with home decor and furniture showrooms, plus the IKEA restaurant."
   },
   {
@@ -503,6 +514,7 @@
       }
     },
     "visit_minutes": 75,
+    "min_visit_minutes": 75,
     "description": "Affordable wagyu supper spot in Mount Austin, open until 3am daily."
   },
   {
@@ -547,6 +559,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "Big warehouse store for household items and home decor at No. 1, Jalan Roda Utama, off Jalan Skudai Batu 8."
   },
   {
@@ -591,6 +604,7 @@
       }
     },
     "visit_minutes": 45,
+    "min_visit_minutes": 45,
     "description": "Budget store on Jalan Wong Ah Fook with cute trinkets and small home items like cups and holders, plus accessories."
   },
   {
@@ -636,6 +650,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "Taoist temple built into the hillside with a nine-storey pagoda and views over the rainforest."
   },
   {
@@ -680,6 +695,7 @@
       }
     },
     "visit_minutes": 180,
+    "min_visit_minutes": 180,
     "description": "Indoor theme park at First World Plaza with rides for all ages, good on rainy or cold days."
   },
   {
@@ -724,6 +740,7 @@
       }
     },
     "visit_minutes": 45,
+    "min_visit_minutes": 45,
     "description": "Cable car from Awana SkyCentral up to SkyAvenue with rainforest views, passing Chin Swee Temple. About 10-15 minutes each way; queues can be long at weekends."
   },
   {
@@ -768,6 +785,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 90,
     "description": "Luxury hotel at the hilltop; afternoon tea for a treat. Hours are a guess: the lobby cafe closed for upgrading in July 2024, so check before going."
   },
   {
@@ -812,6 +830,7 @@
       }
     },
     "visit_minutes": 150,
+    "min_visit_minutes": 150,
     "description": "French-style chateau resort with a spa in Berjaya Hills, off the Karak Highway. Much further by road than it looks on a map (about 40 min from Genting). Hours unverified; call ahead to book a treatment as a day guest."
   },
   {
@@ -856,6 +875,7 @@
       }
     },
     "visit_minutes": 20,
+    "min_visit_minutes": 20,
     "description": "Free 15-minute light and sound show with moving lights over the SkyAvenue atrium: every 2 hours from 10am to 6pm, then hourly until midnight. Some recent reviews say it did not run, so check on the day."
   },
   {
@@ -900,6 +920,7 @@
       }
     },
     "visit_minutes": 150,
+    "min_visit_minutes": 45,
     "description": "Open-air outlet mall next to the Awana SkyWay station, with brand outlets and a food court. Good to combine with the cable car."
   },
   {
@@ -923,6 +944,7 @@
       "sun": null
     },
     "visit_minutes": 150,
+    "min_visit_minutes": 150,
     "description": "Concert and show venue at Resorts World Genting. Only open on event nights (shows usually start around 6pm). If you have tickets, set the hours for that date."
   },
   {
@@ -968,6 +990,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 45,
     "description": "Art deco market hall with Malaysian crafts, batik and souvenirs, next to Chinatown."
   },
   {
@@ -1011,6 +1034,7 @@
       }
     },
     "visit_minutes": 60,
+    "min_visit_minutes": 60,
     "description": "Popular banana leaf rice restaurant at 9 Jalan Telawi 5, Bangsar."
   },
   {
@@ -1054,6 +1078,7 @@
       }
     },
     "visit_minutes": 60,
+    "min_visit_minutes": 60,
     "description": "Biryani cooked and served in bamboo, at 27G Jalan KS 3A, Taman Kinrara Seksyen 3, Puchong."
   },
   {
@@ -1099,6 +1124,7 @@
       }
     },
     "visit_minutes": 120,
+    "min_visit_minutes": 120,
     "description": "Famous night food street in Bukit Bintang. Stalls set up around sunset; many stay open until about 2am."
   },
   {
@@ -1142,6 +1168,7 @@
       }
     },
     "visit_minutes": 60,
+    "min_visit_minutes": 60,
     "description": "Penang's well-known burger joint at A-10, Jalan SS15/4D, Subang Jaya. Known for bacon burgers (not halal)."
   },
   {
@@ -1186,6 +1213,7 @@
       }
     },
     "visit_minutes": 90,
+    "min_visit_minutes": 45,
     "description": "Malaysia's best-known electronics mall, with floors of phones, laptops, gaming gear and accessories."
   },
   {
@@ -1230,6 +1258,7 @@
       }
     },
     "visit_minutes": 45,
+    "min_visit_minutes": 45,
     "description": "Durian stall near Jalan Alor. Supply depends on the season, so check what's available on the day."
   }
 ]

@@ -94,8 +94,8 @@ def test_flags_overlap_using_visit_and_travel_time():
 
 def test_flags_every_stop_when_relaxed_day_is_too_packed():
     places = {
-        "first": make_place("first", visit_minutes=200),
-        "second": make_place("second", visit_minutes=200),
+        "first": make_place("first", visit_minutes=220),
+        "second": make_place("second", visit_minutes=220),
     }
     itinerary = make_itinerary([
         Stop(place_id="first", date=MONDAY, start="09:00", reason="First stop"),
@@ -116,10 +116,55 @@ def test_light_day_summary_only_applies_to_full_days():
 
     checked = check_itinerary(itinerary, {"park": place})
 
-    assert checked.day_flags["2026-10-19"] == ["Light day (1 stop)"]
-    assert checked.day_flags["2026-10-20"] == ["Light day (0 stops)"]
+    assert checked.day_flags["2026-10-19"] == ["Light day (~1h 0m of 4-6h)"]
+    assert checked.day_flags["2026-10-20"] == ["Light day (~0h 0m of 4-6h)"]
     assert "2026-10-18" not in checked.day_flags
     assert "2026-10-21" not in checked.day_flags
+    assert checked.stops[0].flags == []
+
+
+def test_packed_day_uses_hours_for_light_and_packed_flags():
+    place = make_place("park", visit_minutes=240)
+    itinerary = make_itinerary([
+        Stop(place_id="park", date=date(2026, 10, 19), start="10:00", reason="Full day stop"),
+    ], pace="packed")
+
+    checked = check_itinerary(itinerary, {"park": place})
+
+    assert checked.day_flags["2026-10-19"] == ["Light day (~4h 0m of 7-9h)"]
+
+    packed_place = make_place("packed", visit_minutes=601)
+    packed_itinerary = make_itinerary([
+        Stop(place_id="packed", date=date(2026, 10, 19), start="10:00", reason="Long stop"),
+    ], pace="packed")
+    packed_checked = check_itinerary(packed_itinerary, {"packed": packed_place})
+    assert "Day too packed" in flags_for(packed_checked, "packed")
+
+
+def test_non_full_days_are_never_flagged_light():
+    place = make_place("park", visit_minutes=60)
+    itinerary = make_itinerary([
+        Stop(place_id="park", date=date(2026, 10, 18), start="16:00", reason="Check-in stop"),
+        Stop(place_id="park", date=date(2026, 10, 21), start="10:00", reason="Check-out stop"),
+    ])
+
+    checked = check_itinerary(itinerary, {"park": place})
+
+    assert checked.day_flags == {
+        "2026-10-19": ["Light day (~0h 0m of 4-6h)"],
+        "2026-10-20": ["Light day (~0h 0m of 4-6h)"],
+    }
+
+
+def test_check_out_uses_minimum_visit_time_for_browse_places():
+    place = make_place("outlet", visit_minutes=150)
+    place = place.model_copy(update={"min_visit_minutes": 45})
+    itinerary = make_itinerary([
+        Stop(place_id="outlet", date=date(2026, 10, 21), start="10:00", reason="Quick browse"),
+    ])
+
+    checked = check_itinerary(itinerary, {"outlet": place})
+
     assert checked.stops[0].flags == []
 
 
@@ -140,6 +185,18 @@ def test_check_returns_copy_and_clears_stale_flags():
     assert checked is not itinerary
     assert itinerary.stops[0].flags == ["old flag"]
     assert checked.stops[0].flags == []
+
+
+def test_approval_preserves_stop_lock_states():
+    itinerary = make_itinerary([
+        Stop(place_id="locked", date=MONDAY, start="10:00", reason="Locked stop", locked=True),
+        Stop(place_id="open", date=MONDAY, start="12:00", reason="Open stop", locked=False),
+    ])
+
+    approved = itinerary.model_copy(update={"approved": True})
+
+    assert approved.approved is True
+    assert [stop.locked for stop in approved.stops] == [True, False]
 
 
 def test_parse_coordinates_accepts_google_maps_format():
@@ -169,6 +226,12 @@ def test_hotel_times_default_to_standard_check_in_and_check_out():
 
     assert hotel.arrival_time == "15:00"
     assert hotel.departure_time == "11:00"
+
+
+def test_place_minimum_visit_defaults_to_visit_time():
+    place = make_place("park", visit_minutes=90)
+
+    assert place.min_visit_minutes == 90
 
 
 def test_hotel_times_use_half_hour_increments():

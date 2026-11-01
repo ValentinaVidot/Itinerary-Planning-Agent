@@ -16,10 +16,14 @@ Only suggest places returned by find_places. Never invent places, opening hours,
 distances. Give every stop a short reason that names the matching interest, distance
 from that night's hotel, and opening time, such as "Cat cafe: you chose animals,
 10 minutes from your Johor Bahru hotel, open until 8pm".
-For a full day, target 3-4 stops at relaxed pace or 5-6 stops at packed pace. On a
-check-in or check-out day, target 1-2 stops around arrival or departure. Include a
-mix across the day (morning, lunch, afternoon, and dinner/evening) and use the
-traveler's interests. Never repeat the same place on two days.
+For a full day, target 4-6 hours of visits and travel at relaxed pace, or 7-9 hours
+at packed pace. A relaxed day is too packed above 7 hours and light below 3 hours;
+a packed day is too packed above 10 hours and light below 5 hours. On check-in,
+transfer, and check-out days, plan only within the available hotel windows and
+check for too-packed schedules there, but never mark those days light. Include a
+mix across the day (morning, lunch, afternoon, and dinner/evening) when the
+available window allows it, and use the traveler's interests. Never repeat the
+same place on two days.
 Plan only the date the user asks about; do not change other dates. Call check_day
 before save_itinerary, then save the requested date with its date parameter.
 Fix flagged stops when a better option exists;

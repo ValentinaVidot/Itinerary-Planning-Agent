@@ -16,6 +16,10 @@ from lab_support.events import emit_event
 CITY_NAMES = Literal["Johor Bahru", "Genting Highlands", "Kuala Lumpur"]
 WEEKDAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 TIME_PATTERN = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+PACE_TARGETS = {
+    "relaxed": {"minimum": 180, "target_minimum": 240, "target_maximum": 360, "maximum": 420},
+    "packed": {"minimum": 300, "target_minimum": 420, "target_maximum": 540, "maximum": 600},
+}
 
 
 class OpeningHours(BaseModel):
@@ -42,7 +46,16 @@ class Place(BaseModel):
     tags: list[str]
     hours: dict[str, OpeningHours | None]
     visit_minutes: int
+    min_visit_minutes: int
     description: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def default_minimum_visit(cls, value):
+        if isinstance(value, dict):
+            value = dict(value)
+            value.setdefault("min_visit_minutes", value.get("visit_minutes"))
+        return value
 
     @field_validator("hours")
     @classmethod
@@ -56,6 +69,13 @@ class Place(BaseModel):
     def positive_visit(cls, value: int) -> int:
         if value <= 0:
             raise ValueError("visit_minutes must be positive")
+        return value
+
+    @field_validator("min_visit_minutes")
+    @classmethod
+    def positive_minimum_visit(cls, value: int) -> int:
+        if value <= 0:
+            raise ValueError("min_visit_minutes must be positive")
         return value
 
 
@@ -508,6 +528,43 @@ def _window_for_stop(plan: dict, stop: Stop) -> dict | None:
     return None
 
 
+def pace_target_label(pace: str) -> str:
+    target = PACE_TARGETS[pace]
+    return f"{target['target_minimum'] // 60}-{target['target_maximum'] // 60}h"
+
+
+def format_duration(minutes: int) -> str:
+    hours, remainder = divmod(minutes, 60)
+    return f"{hours}h {remainder}m"
+
+
+def day_duration_minutes(
+    day_stops: list[Stop],
+    places: dict[str, Place],
+    plan: dict | None = None,
+) -> int:
+    """Return visit and between-stop travel time for a day's valid planning window."""
+    considered = day_stops
+    if plan and plan["day_type"] != "full":
+        considered = [stop for stop in day_stops if _window_for_stop(plan, stop) is not None]
+    ordered = sorted(considered, key=lambda stop: stop.start)
+    total = 0
+    previous = None
+    for stop in ordered:
+        place = places.get(stop.place_id)
+        if place is None:
+            continue
+        if previous is not None:
+            prior_place = places.get(previous.place_id)
+            if prior_place:
+                total += round(
+                    haversine_km(prior_place.lat, prior_place.lng, place.lat, place.lng) / 25 * 60
+                )
+        total += place.visit_minutes
+        previous = stop
+    return total
+
+
 def check_itinerary(itinerary: Itinerary, places: dict[str, Place]) -> Itinerary:
     """Return a copy with deterministic opening, distance, overlap, and pace flags."""
     stops = [stop.model_copy(update={"flags": []}) for stop in itinerary.stops]
@@ -531,7 +588,9 @@ def check_itinerary(itinerary: Itinerary, places: dict[str, Place]) -> Itinerary
         if plan:
             if plan["day_type"] == "check-in" and _minutes(stop.start) < _minutes(plan["windows"][0]["start"]):
                 stop.flags.append(f"Before check-in (check-in {plan['windows'][0]['hotel'].check_in_time})")
-            elif plan["day_type"] == "check-out" and stop_end > _minutes(plan["windows"][0]["end"]):
+            elif plan["day_type"] == "check-out" and (
+                _minutes(stop.start) + place.min_visit_minutes > _minutes(plan["windows"][0]["end"])
+            ):
                 stop.flags.append(f"After check-out (check-out {plan['windows'][0]['hotel'].check_out_time})")
             elif plan["day_type"] in {"transfer", "check-in-and-out"}:
                 old_window, new_window = plan["windows"]
@@ -553,31 +612,28 @@ def check_itinerary(itinerary: Itinerary, places: dict[str, Place]) -> Itinerary
         elif hours is not None:
             stop.flags.append(f"Outside opening hours (opens {hours.open}, closes {hours.close})")
     day_flags: dict[str, list[str]] = {}
-    minimum_stops = 3 if itinerary.pace == "relaxed" else 5
     for day, day_stops in by_day.items():
         ordered = sorted(day_stops, key=lambda stop: stop.start)
-        total = 0
+        plan = plans_by_date.get(day)
+        total = day_duration_minutes(day_stops, places, plan)
         previous = None
         for stop in ordered:
             place = places.get(stop.place_id)
-            visit = place.visit_minutes if place else 0
             if previous is not None:
                 prior_place = places.get(previous.place_id)
                 if prior_place and place:
                     travel = round(haversine_km(prior_place.lat, prior_place.lng, place.lat, place.lng) / 25 * 60)
                     if _minutes(stop.start) < _minutes(previous.start) + prior_place.visit_minutes + travel:
                         stop.flags.append("Overlaps previous stop")
-                    total += travel
-            total += visit
             previous = stop
-        threshold = 360 if itinerary.pace == "relaxed" else 600
-        if total > threshold:
+        if total > PACE_TARGETS[itinerary.pace]["maximum"]:
             for stop in day_stops:
                 if "Day too packed" not in stop.flags:
                     stop.flags.append("Day too packed")
-        plan = plans_by_date.get(day)
-        if plan and plan["day_type"] == "full" and len(day_stops) < minimum_stops:
-            day_flags[day.isoformat()] = [f"Light day ({len(day_stops)} stop{'s' if len(day_stops) != 1 else ''})"]
+        if plan and plan["day_type"] == "full" and total < PACE_TARGETS[itinerary.pace]["minimum"]:
+            day_flags[day.isoformat()] = [
+                f"Light day (~{format_duration(total)} of {pace_target_label(itinerary.pace)})"
+            ]
     return itinerary.model_copy(update={
         "stops": stops, "approved": False, "day_flags": day_flags,
     })
