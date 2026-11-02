@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from typing import Callable
 
-from ._display import table, ToolOutput, print_output
+from ._display import table, shorten, ToolOutput, print_output
 
 MAX_FILE_BYTES = 32_768
 MAX_OUTPUT_BYTES = 262_144
@@ -221,10 +221,9 @@ class Workspace:
     def emit_tool(self, name: str, text: str):
         self.emit(ToolOutput(text, name))
 
-    def show(self, name: str, result: dict | list[str]):
+    def show(self, name: str, result: dict):
         """Display a successful tool result; file contents stay in the model result."""
-        self.events.append({"tool": name, "ok": True,
-                            "path": result.get("path") if isinstance(result, dict) else None})
+        self.events.append({"tool": name, "ok": True, "path": result.get("path")})
         if name == "read_file":
             self.emit_tool(name, f"Read: {result['path']}")
         elif name == "write_file":
@@ -236,6 +235,7 @@ class Workspace:
                 self.emit_tool(name, result["message"])
         elif name == "search_local":
             self.emit_tool(name, "Local file search")
-            self.emit_tool(name, table(["File"], [(filename,) for filename in result], [80]))
-            if not result:
-                self.emit_tool(name, "No matches.")
+            self.emit_tool(name, table(["File / line", "Match"],
+                [(f"{m['path']}:{m['line']}", shorten(m["excerpt"], 180)) for m in result["matches"]], [36, 58]))
+            if not result["matches"]:
+                self.emit_tool(name, result["message"])

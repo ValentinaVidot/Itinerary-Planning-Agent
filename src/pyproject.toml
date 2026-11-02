@@ -2,7 +2,7 @@
 name = "itinerary-planning-agent"
 version = "0.3.0"
 description = "Itinerary planning agent for booked multi-city trips"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = ["openai-agents==0.22.2", "openai==3.14.1", "httpx2==2.13.0"]
 
 [build-system]
