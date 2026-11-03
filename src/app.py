@@ -132,10 +132,13 @@ def _apply_theme():
             padding: 1rem 1.2rem;
             margin: 0.5rem 0 1rem;
         }
-        div[data-testid="stPopover"].st-key-chat_agent {
-            position: fixed;
-            right: 1.5rem;
-            bottom: 1.5rem;
+        div[data-testid="stPopover"].st-key-chat_agent,
+        div[class*="st-key-chat_agent"] {
+            position: fixed !important;
+            right: 1.5rem !important;
+            bottom: 1.5rem !important;
+            top: auto !important;
+            transform: none;
             width: fit-content;
             margin-left: auto;
             z-index: 999;
@@ -328,8 +331,15 @@ def _run_turn(prompt, ui_edits=None, show_answer=True):
         result = future.result()
     after = load_itinerary()
     _log_turn(result, before, after, ui_edits or {"prompt": prompt})
-    if result.status == "failed":
-        st.error(result.error or "The agent turn failed.")
+    if result.status == "failed" or result.error:
+        error = result.error or "The agent turn failed."
+        st.session_state.setdefault("chat_messages", []).append({
+            "prompt": prompt,
+            "answer": error,
+            "error": True,
+        })
+        st.session_state["chat_history"] = st.session_state["chat_messages"]
+        st.error(f"The agent couldn't run: {error}")
     else:
         message = {
             "prompt": prompt,
@@ -886,7 +896,10 @@ def _chat():
             with st.chat_message("user"):
                 st.write(message["prompt"])
             with st.chat_message("assistant"):
-                _show_agent_answer(message["answer"])
+                if message.get("error"):
+                    st.error(f"The agent couldn't run: {message['answer']}")
+                else:
+                    _show_agent_answer(message["answer"])
         prompt = st.chat_input(
             prompts.get(chat_mode, "Choose an option above to start chatting"),
             key="chat_prompt",
