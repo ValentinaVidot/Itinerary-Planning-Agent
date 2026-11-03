@@ -93,9 +93,7 @@ class Session:
                 emit_event("turn_started")
                 try:
                     inputs = self.input_builder(deepcopy(self.history), user_input, self.files)
-                    with asyncio.Runner() as loop:
-                        loop.get_loop()
-                        sdk_result = self.runner(self.agent, inputs, connection.run_config)
+                    sdk_result = self.runner(self.agent, inputs, connection.run_config)
                     result.sdk_result = sdk_result
                     self.history = sdk_result.to_input_list()
                     result.answer = str(sdk_result.final_output or "")

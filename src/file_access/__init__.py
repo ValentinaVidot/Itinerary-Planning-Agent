@@ -23,11 +23,6 @@ class FileAccess:
     def _workspace(self):
         return self._override.get() or self._default
 
-    @property
-    def root(self):
-        """Return the root of the currently active workspace."""
-        return self._workspace.root
-
     @contextmanager
     def use(self, workspace):
         """Infrastructure/testing: temporarily select isolated files for this run."""
@@ -74,7 +69,7 @@ class FileAccess:
         self._workspace.show("update_plan", result)
         return result
 
-    def show_result(self, name: str, result: dict | list[str]) -> None:
+    def show_result(self, name: str, result: dict) -> None:
         """Record and display a tool result using the supplied terminal renderer."""
         self._workspace.show(name, result)
 

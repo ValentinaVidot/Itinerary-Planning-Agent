@@ -26,7 +26,7 @@ class LabSession(Session):
     """Compatibility terminal adapter; projects use connection.session()."""
 
     def __init__(self, workspace, client, ledger, emit=print_output,
-                 *, instructions=None, tools=None, agent_factory=None, runner=None):
+                 *, instructions=None, tools=None, agent_factory=None, runner=None, input_builder=None):
         from agent import create_agent
         factory = agent_factory or create_agent
         def configured(model):
@@ -39,7 +39,7 @@ class LabSession(Session):
         connection = LabConnection(client, ledger, workspace.root, emit)
         access = FileAccess(workspace.root, emit)
         access._default = workspace
-        super().__init__(connection, access, agent_factory=configured, runner=runner)
+        super().__init__(connection, access, agent_factory=configured, runner=runner, input_builder=input_builder)
         self.workspace, self.ledger, self.emit = workspace, ledger, emit
         self.transport = connection.transport
         self.openai_client = connection.openai_client
@@ -88,7 +88,7 @@ def startup_budget(allowance, ledger):
     return f"Remaining lab budget: ${remaining:.2f}"
 
 
-def main(*, agent_factory=None, runner=None, instructions=None, tools=None):
+def main(*, agent_factory=None, runner=None, input_builder=None, instructions=None, tools=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--demo", action="store_true", help="offline scripted walkthrough; no API calls")
     parser.add_argument("--check", action="store_true", help="verify configuration and key allowance without a model call")
@@ -114,7 +114,7 @@ def main(*, agent_factory=None, runner=None, instructions=None, tools=None):
             ledger = Ledger(ROOT / ".lab-state", key)
             agent = LabSession(Workspace(ROOT, emit), client, ledger, emit,
                                instructions=instructions, tools=tools,
-                               agent_factory=agent_factory, runner=runner)
+                               agent_factory=agent_factory, runner=runner, input_builder=input_builder)
             emit(f"Product-analysis lab — {MODEL}\nEnter a task or follow-up. /quit, /exit.")
             emit("Try: Explore the available materials and suggest three product questions we could investigate.")
             emit(startup_budget(allowance, ledger))
