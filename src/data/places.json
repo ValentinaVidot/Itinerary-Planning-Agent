@@ -1260,5 +1260,26 @@
     "visit_minutes": 45,
     "min_visit_minutes": 45,
     "description": "Durian stall near Jalan Alor. Supply depends on the season, so check what's available on the day."
-  }
+  },
+  {
+  "id": "kl-ss2-durian-house",
+  "name": "SS2 Durian House Stall",
+  "city": "Kuala Lumpur",
+  "area": "SS2, Petaling Jaya",
+  "lat": 3.118277,
+  "lng": 101.620907,
+  "tags": ["food", "fruits"],
+  "hours": {
+    "mon": {"open": "12:00", "close": "00:00"},
+    "tue": {"open": "12:00", "close": "00:00"},
+    "wed": {"open": "12:00", "close": "00:00"},
+    "thu": {"open": "12:00", "close": "00:00"},
+    "fri": {"open": "12:00", "close": "00:00"},
+    "sat": {"open": "12:00", "close": "00:00"},
+    "sun": {"open": "12:00", "close": "00:00"}
+  },
+  "visit_minutes": 45,
+  "min_visit_minutes": 30,
+  "description": "Well-known durian stall in SS2, Petaling Jaya, with a range of durian varieties to eat on the spot. Open daily until midnight; supply depends on the season."
+}
 ]

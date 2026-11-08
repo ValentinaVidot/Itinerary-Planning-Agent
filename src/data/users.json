@@ -1,4 +1,11 @@
-[
+[ {
+    "id": "participant-11",
+    "name": "Anacelle Vidot"
+  },
+  {
+    "id": "participant-1",
+    "name": "Shane Brioche"
+  },
   {
     "id": "hello-kitty",
     "name": "Hello Kitty"

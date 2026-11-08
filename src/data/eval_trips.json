@@ -1,0 +1,40 @@
+{
+  "december": {
+    "hotels": [
+      {
+        "id": "jb-opero-southkey",
+        "check_in": "2026-12-14",
+        "check_out": "2026-12-16"
+      },
+      {
+        "id": "genting-scapes",
+        "check_in": "2026-12-16",
+        "check_out": "2026-12-18"
+      }
+    ],
+    "pace": "relaxed",
+    "interests": ["food", "shopping", "tech", "nature"]
+  },
+  "kl_packed": {
+    "hotels": [
+      {
+        "id": "kl-traders",
+        "check_in": "2026-12-14",
+        "check_out": "2026-12-16"
+      }
+    ],
+    "pace": "packed",
+    "interests": ["food", "shopping", "culture"]
+  },
+  "jb_relaxed": {
+    "hotels": [
+      {
+        "id": "jb-ksl",
+        "check_in": "2026-12-14",
+        "check_out": "2026-12-16"
+      }
+    ],
+    "pace": "relaxed",
+    "interests": ["animals", "cafe", "home_decor"]
+  }
+}
